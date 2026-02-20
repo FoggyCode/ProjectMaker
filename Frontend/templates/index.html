@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Maker</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <script src="../assets/ts/index.js" type="module"></script>
+</head>
+<body>
+    <!-- Dashboard -->
+
+    <div id="prefabs">
+        <div class="project-card prefab">
+            <div class="project-icon ide-icon">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/IntelliJ_IDEA_Icon.svg/960px-IntelliJ_IDEA_Icon.svg.png">
+            </div>
+            <div class="project-info">
+                <h3>E-Commerce Platform</h3>
+                <div class="project-meta">
+                    <span class="ide-badge">IntelliJ</span>
+                    <span class="last-edited">Vor 2 Stunden</span>
+                </div>
+            </div>
+        </div>
+        <div class="template-card prefab">
+            <div class="template-icon ide-icon">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/IntelliJ_IDEA_Icon.svg/960px-IntelliJ_IDEA_Icon.svg.png">
+            </div>
+            <div class="template-info">
+                <h3>E-Commerce Platform</h3>
+                <div class="template-meta">
+                    <span class="ide-badge">IntelliJ</span>
+                    <span class="last-edited">Vor 2 Stunden</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="language-item prefab">
+            <div class="language-header">
+                <span class="language-name">Java</span>
+                <span class="language-percent">65.4%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 65.4%; background: #b07219;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard">
+        <section id="projects-section">
+            <header class="dashboard-header">
+                <h1>Project Maker</h1>
+                <div class="action-btns">
+
+
+                    <button class="btn-primary" id="add-project-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Hinzufügen
+                    </button>
+
+                    <button class="btn-primary" id="create-project-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Erstellen
+                    </button>
+
+
+                </div>
+
+            </header>
+
+            <div class="search-filter-bar">
+                <div class="search-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" placeholder="Projekte durchsuchen...">
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-value="-1">Alle</button>
+                    <button class="filter-btn" data-value="0">IntelliJ</button>
+                    <button class="filter-btn" data-value="1">VS Code</button>
+                    <button class="filter-btn" data-value="2">Visual Studio</button>
+
+                    <div class="sort-after select">
+                        <div class="active-option">
+                            <img src="https://cdn-icons-png.flaticon.com/128/12087/12087830.png">
+                            <h4 class="active-option"></h4>
+                        </div>
+                        <div class="dropdown">
+                            <div class="option">
+                                <img src="https://cdn-icons-png.flaticon.com/128/12087/12087830.png">
+                                <h4>Datum</h4>
+                            </div>
+                            <div class="option">
+                                <img src="https://cdn-icons-png.flaticon.com/128/12087/12087830.png">
+                                <h4>Datum absteigend</h4>
+                            </div>
+                            <div class="option">
+                                <img src="https://cdn-icons-png.flaticon.com/128/12087/12087830.png">
+                                <h4>Name</h4>
+                            </div>
+
+                            <div class="option">
+                                <img src="https://cdn-icons-png.flaticon.com/128/12087/12087830.png">
+                                <h4>Ide</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="projects-grid">
+
+            </div>
+
+            <footer>
+                <div class="bottom-bar">
+
+                    <button class="btn-primary grey" id="show-templates-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20"  fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M18 10L21 7M21 7L18 4M21 7H7M6 14L3 17M3 17L6 20M3 17H17" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                        Templates
+                    </button>                    
+                    
+                    <button class="btn-primary grey " id="scan-projects-btn">
+                        <svg viewBox="0 0 24 24" width="24" height = "24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 8a1 1 0 0 1-2 0V5.923c0-.76.082-1.185.319-1.627.223-.419.558-.754.977-.977C4.738 3.082 5.162 3 5.923 3H8a1 1 0 0 1 0 2H5.923c-.459 0-.57.022-.684.082a.364.364 0 0 0-.157.157c-.06.113-.082.225-.082.684V8zm3 11a1 1 0 1 1 0 2H5.923c-.76 0-1.185-.082-1.627-.319a2.363 2.363 0 0 1-.977-.977C3.082 19.262 3 18.838 3 18.077V16a1 1 0 1 1 2 0v2.077c0 .459.022.57.082.684.038.07.087.12.157.157.113.06.225.082.684.082H8zm7-15a1 1 0 0 0 1 1h2.077c.459 0 .57.022.684.082.07.038.12.087.157.157.06.113.082.225.082.684V8a1 1 0 1 0 2 0V5.923c0-.76-.082-1.185-.319-1.627a2.363 2.363 0 0 0-.977-.977C19.262 3.082 18.838 3 18.077 3H16a1 1 0 0 0-1 1zm4 12a1 1 0 1 1 2 0v2.077c0 .76-.082 1.185-.319 1.627a2.364 2.364 0 0 1-.977.977c-.442.237-.866.319-1.627.319H16a1 1 0 1 1 0-2h2.077c.459 0 .57-.022.684-.082a.363.363 0 0 0 .157-.157c.06-.113.082-.225.082-.684V16zM3 11a1 1 0 1 0 0 2h18a1 1 0 1 0 0-2H3z" fill="#ffffff"></path></g></svg>
+                        Scan
+                    </button>
+
+                    <button class="btn-primary grey" id="settings-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        Einstellungen
+                    </button>
+        
+                </div>
+            </footer>
+        </section>
+
+
+        <section id="templates-section">
+        <header class="dashboard-header">
+                <h1>Project Maker</h1>
+                <div class="action-btns">
+
+
+                <button class="btn-primary grey" id="add-template-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Templates
+                </button>
+
+
+
+                </div>
+
+            </header>
+
+            <div class="search-filter-bar">
+                <div class="search-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" placeholder="Templates durchsuchen...">
+                </div>
+              
+            </div>
+
+            <div class="templates-grid">
+
+            </div>
+
+            <footer>
+            <div class="bottom-bar">
+
+                <button class="btn-primary grey" id="show-projects-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20"  fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M18 10L21 7M21 7L18 4M21 7H7M6 14L3 17M3 17L6 20M3 17H17" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                    Projects
+                </button>
+
+                <button class="btn-primary grey" id="settings-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    Einstellungen
+                </button>
+       
+            </div>
+        </footer>
+        </section>
+
+    </div>
+
+    <!-- Create Project Modal -->
+    <div class="modal-overlay">
+        <div class="modal project-create-modal">
+            <div class="modal-header">
+                <h2>Neues Projekt erstellen</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="project-name">Projektname</label>
+                    <input type="text" id="project-name" placeholder="Mein neues Projekt">
+                </div>
+
+                <div class="form-group">
+                    <label>IDE auswählen</label>
+                    <div class="ide-selector create">
+                        <div class="ide-option create selected" data-value = 0>
+                            <input type="radio" id="ide-intellij" name="ide" checked>
+                            <label for="ide-intellij">
+                                <div class="ide-icon intellij-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/IntelliJ_IDEA_Icon.svg/960px-IntelliJ_IDEA_Icon.svg.png">
+                                    
+                                </div>
+                                <span>IntelliJ IDEA</span>
+                            </label>
+                        </div>
+
+                        <div class="ide-option create" data-value = 1>
+                            <input type="radio" id="ide-vscode" name="ide">
+                            <label for="ide-vscode">
+                                <div class="ide-icon vscode-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/3840px-Visual_Studio_Code_1.35_icon.svg.png">
+                                </div>
+                                <span>VS Code</span>
+                            </label>
+                        </div>
+
+                        <div class="ide-option create" data-value = 2>
+                            <input type="radio" id="ide-vsstudio" name="ide">
+                            <label for="ide-vsstudio">
+                                <div class="ide-icon vsstudio-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Visual_Studio_Icon_2022.svg/960px-Visual_Studio_Icon_2022.svg.png">
+                                </div>
+                                <span>Visual Studio</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="project-template">Template</label>
+                    <div class="select project-template">
+                        <div class="active-option">
+                            <img src="https://cdn-icons-png.flaticon.com/128/15236/15236867.png">
+                            <h4 class="active-option">None</h4>
+                        </div>
+                        <div class="dropdown">
+                            <div class="option">
+                                <img src="https://cdn-icons-png.flaticon.com/128/15236/15236867.png">
+                                <h4>None</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-btn-sec">Abbrechen</button>
+                <button class="btn-primary create-project-confirm">Projekt erstellen</button>
+            </div>
+        </div>
+
+        <div class="modal project-edit-modal">
+            <div class="modal-header">
+                <h2>Projekt bearbeiten</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="project-edit-name">Projektname</label>
+                    <input type="text" id="project-edit-name" placeholder="ProjektName">
+                </div>
+
+                <div class="form-group">
+                    <label>IDE ändern</label>
+                    <div class="ide-selector edit">
+                        <div class="ide-option edit selected" data-value = 0>
+                            <input type="radio" id="edit-ide-intellij" name="ide" checked>
+                            <label for="ide-intellij">
+                                <div class="ide-icon intellij-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/IntelliJ_IDEA_Icon.svg/960px-IntelliJ_IDEA_Icon.svg.png">
+                                    
+                                </div>
+                                <span>IntelliJ IDEA</span>
+                            </label>
+                        </div>
+
+                        <div class="ide-option edit" data-value = 1>
+                            <input type="radio" id="edit-ide-vscode" name="ide">
+                            <label for="ide-vscode">
+                                <div class="ide-icon vscode-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/3840px-Visual_Studio_Code_1.35_icon.svg.png">
+                                </div>
+                                <span>VS Code</span>
+                            </label>
+                        </div>
+
+                        <div class="ide-option edit" data-value = 2>
+                            <input type="radio" id="edit-ide-vsstudio" name="ide">
+                            <label for="ide-vsstudio">
+                                <div class="ide-icon vsstudio-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Visual_Studio_Icon_2022.svg/960px-Visual_Studio_Icon_2022.svg.png">
+                                </div>
+                                <span>Visual Studio</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="project-edit-icon">Projekt Icon</label>
+                    <input type="text" id="project-edit-icon" placeholder="https://img.icon">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary create-project-confirm">Übernehmen</button>
+            </div>
+        </div>
+
+        <div class="modal scan-projects-modal">
+            <div class="modal-header">
+                <div class="flex gap">
+                    <svg viewBox="0 0 24 24" width="50" height = "50" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 8a1 1 0 0 1-2 0V5.923c0-.76.082-1.185.319-1.627.223-.419.558-.754.977-.977C4.738 3.082 5.162 3 5.923 3H8a1 1 0 0 1 0 2H5.923c-.459 0-.57.022-.684.082a.364.364 0 0 0-.157.157c-.06.113-.082.225-.082.684V8zm3 11a1 1 0 1 1 0 2H5.923c-.76 0-1.185-.082-1.627-.319a2.363 2.363 0 0 1-.977-.977C3.082 19.262 3 18.838 3 18.077V16a1 1 0 1 1 2 0v2.077c0 .459.022.57.082.684.038.07.087.12.157.157.113.06.225.082.684.082H8zm7-15a1 1 0 0 0 1 1h2.077c.459 0 .57.022.684.082.07.038.12.087.157.157.06.113.082.225.082.684V8a1 1 0 1 0 2 0V5.923c0-.76-.082-1.185-.319-1.627a2.363 2.363 0 0 0-.977-.977C19.262 3.082 18.838 3 18.077 3H16a1 1 0 0 0-1 1zm4 12a1 1 0 1 1 2 0v2.077c0 .76-.082 1.185-.319 1.627a2.364 2.364 0 0 1-.977.977c-.442.237-.866.319-1.627.319H16a1 1 0 1 1 0-2h2.077c.459 0 .57-.022.684-.082a.363.363 0 0 0 .157-.157c.06-.113.082-.225.082-.684V16zM3 11a1 1 0 1 0 0 2h18a1 1 0 1 0 0-2H3z" fill="#ffffff"></path></g></svg>
+                    <h2>Ordner Scannen</h2>   
+                </div>
+
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+
+
+                <div id="scan-prepare">
+                    <div class="form-group">
+                        <label for="scan-projects-path">Ordner Pfad</label>
+                        <div class="flex">
+                            <input type="text" id="scan-projects-path" placeholder="C:/Pfad">
+                            <button class="locate-btn" id="locate-scan-btn">
+                                <svg
+                                width="32"
+                                height="32"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#ffffff"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                >
+                                <path d="M3 6h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <br>
+
+                        <div class="scan-prepare-info">
+                            <svg width="35px" height="35px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M9 13L11 15L15 11M12.0627 6.06274L11.9373 5.93726C11.5914 5.59135 11.4184 5.4184 11.2166 5.29472C11.0376 5.18506 10.8425 5.10425 10.6385 5.05526C10.4083 5 10.1637 5 9.67452 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V15.8C3 16.9201 3 17.4802 3.21799 17.908C3.40973 18.2843 3.71569 18.5903 4.09202 18.782C4.51984 19 5.07989 19 6.2 19H17.8C18.9201 19 19.4802 19 19.908 18.782C20.2843 18.5903 20.5903 18.2843 20.782 17.908C21 17.4802 21 16.9201 21 15.8V10.2C21 9.0799 21 8.51984 20.782 8.09202C20.5903 7.71569 20.2843 7.40973 19.908 7.21799C19.4802 7 18.9201 7 17.8 7H14.3255C13.8363 7 13.5917 7 13.3615 6.94474C13.1575 6.89575 12.9624 6.81494 12.7834 6.70528C12.5816 6.5816 12.4086 6.40865 12.0627 6.06274Z" stroke="#ffffff" stroke-width="1.104" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                            <p class="big scan-prepare-count">Verzeichnes auswählen...</p>
+                        </div>
+                    </div>     
+                    <div class="modal-footer">
+                        <button class="btn-secondary close-btn-sec">Abbrechen</button>
+                        <button class="btn-primary scan-start-btn">Scan starten</button>
+                    </div>
+                </div>
+
+                <div id="scan-ongoing" class="flex center col">
+                    <h3>Ordner wird gescannt...</h3>
+                    
+                    <div id="scan-progress-bg">
+                        <div id="scan-progress">
+
+                        </div>
+                    </div>
+                    
+                    <div class="flex">
+                        <p class="big scan-ongoing-status">Warten...</p>
+                    </div>
+                    <br>
+                    <div class="flex gapsmall">
+                        <svg width="35px" height="35px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M9 13L11 15L15 11M12.0627 6.06274L11.9373 5.93726C11.5914 5.59135 11.4184 5.4184 11.2166 5.29472C11.0376 5.18506 10.8425 5.10425 10.6385 5.05526C10.4083 5 10.1637 5 9.67452 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V15.8C3 16.9201 3 17.4802 3.21799 17.908C3.40973 18.2843 3.71569 18.5903 4.09202 18.782C4.51984 19 5.07989 19 6.2 19H17.8C18.9201 19 19.4802 19 19.908 18.782C20.2843 18.5903 20.5903 18.2843 20.782 17.908C21 17.4802 21 16.9201 21 15.8V10.2C21 9.0799 21 8.51984 20.782 8.09202C20.5903 7.71569 20.2843 7.40973 19.908 7.21799C19.4802 7 18.9201 7 17.8 7H14.3255C13.8363 7 13.5917 7 13.3615 6.94474C13.1575 6.89575 12.9624 6.81494 12.7834 6.70528C12.5816 6.5816 12.4086 6.40865 12.0627 6.06274Z" stroke="#ffffff" stroke-width="1.104" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                        <p class="big scan-ongoing-found"></p>
+                    </div>
+                     <div class="modal-footer">
+                        <button class="btn-danger close-btn-sec stop-scan-btn">Abbrechen</button>
+                        <button class="btn-primary scan-add-btn">Projekte hinzufügen</button>
+                    </div>
+                </div>
+                
+            </div>
+
+ 
+  
+
+        </div>
+
+        <div class="modal template-add-modal">
+            <div class="modal-header">
+                <h2>Template erstellen</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="template-add-name">Templatename</label>
+                    <div class="flex">
+                        <input type="text" id="template-add-name" placeholder="Java Template">
+                    </div>
+                </div>                
+                <div class="form-group">
+                    <label for="template-add-des">Template Beschreibung</label>
+                    <div class="flex">
+                        <input type="text" id="template-add-des" placeholder="Nützliches Java Template">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="template-add-cmd">Template Command</label>
+                    <div class="flex">
+                        <input type="text" id="template-add-cmd" placeholder="npm init">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="template-add-des">Template Icon</label>
+                    <div class="flex">
+                        <input type="text" id="template-icon" placeholder="https://img.icon">  
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-btn-sec">Abbrechen</button>
+                <button class="btn-primary add-template-confirm">Template erstellen</button>
+            </div>
+        </div>
+        
+ 
+        <div class="modal project-add-modal">
+            <div class="modal-header">
+                <h2>Projekt hinzufügen</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="project-add-path">Projektpfad</label>
+                    <div class="flex">
+                        <input type="text" id="project-add-path" placeholder="C:/Pfad">
+                        <button id="locate-btn">
+                            <svg
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#ffffff"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            >
+                            <path d="M3 6h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-btn-sec">Abbrechen</button>
+                <button class="btn-primary add-project-confirm">Projekt hinzufügen</button>
+            </div>
+        </div>
+
+        <div class="modal settings-modal">
+            <div class="modal-header">
+                <h2>Einstellungen</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="">Projekte Ordner</label>
+                    <div class="flex">
+                        <input type="text" id="projects-folder" placeholder="C:/">
+                        <button id="locate-btn-project-folder">
+                            <svg
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#ffffff"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            >
+                            <path d="M3 6h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="">Template Names</label>
+                    <div class="embed-field">
+                        <h4>Beim erstellen alles in Ordner Kategorisieren?</h4>
+                        <label class="switch">
+                            <input type="checkbox" id="use-categories">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+    
+                <div class="form-group smallgap flex-col">
+                    <label for="">Programm Ordner</label>
+                    <div class="embed-field">
+                        <h4>Application Data</h4>
+                        <button class="btn-primary open-folder" id="open-application-folder">Öffnen</button>
+                    </div>
+                    <div class="embed-field">
+                        <h4>Template Ordner</h4>
+                        <button class="btn-primary open-folder" id="open-templates-folder">Öffnen</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-btn-sec">Abbrechen</button>
+                <button class="btn-primary settings-confirm">Speichern</button>
+            </div>
+        </div>
+
+        <div class="modal template-view-modal">
+            <div class="modal-header">
+                <h2 class="view-template-name">Template Name</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="template-header-info">
+                    <div class="template-icon-selector">
+                        <div class="current-icon">
+                            <img class="template-icon ide-icon">
+                        </div>
+                    </div>
+                    <div class="view-template-info">
+                        <span class="ide-badge template">Template</span>
+                        <span class="view-template-detail">Detailierter Text zu diesem TemapltaeDetailierter Text zu diesem TemapltaeDetailierter Text zu diesem TemapltaeDetailierter Text zu diesem Temapltae</span>
+                    </div>
+                </div>
+
+                <div class="template-path-card">
+                    <div class="path-icon">
+                        <svg  height="20" width="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z" fill="#ffffff"></path> <path d="M4.80665 17.5211L9.1221 9.60947C9.50112 8.91461 10.4989 8.91461 10.8779 9.60947L14.0465 15.4186L15.1318 13.5194C15.5157 12.8476 16.4843 12.8476 16.8682 13.5194L19.1451 17.5039C19.526 18.1705 19.0446 19 18.2768 19H5.68454C4.92548 19 4.44317 18.1875 4.80665 17.5211Z" fill="#ffffff"></path> <path d="M18 8C18 9.10457 17.1046 10 16 10C14.8954 10 14 9.10457 14 8C14 6.89543 14.8954 6 16 6C17.1046 6 18 6.89543 18 8Z" fill="#ffffff"></path> </g></svg> 
+                    </div>
+                    <div class="stat-info strech">
+               
+                        <div class="form-group no-margin strech">
+                            <input type="text" id="template-image" placeholder="Image Url">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="template-path-card">
+                    <div class="path-icon">
+                    <svg viewBox="0 0 24 24" fill="none" width="24"  height="24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M7 8L3 11.6923L7 16M17 8L21 11.6923L17 16M14 4L10 20" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+
+                    </div>
+                    <div class="stat-info strech">
+                        <div class="form-group no-margin strech">
+                            <input type="text" id="template-command" placeholder="Custom install command">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer flex center">
+                    <button class="btn-danger view-template-delete">Template löschen</button>
+                    <button class="btn-primary big view-template-open">Template öffnen</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal project-view-modal">
+            <div class="modal-header">
+                <h2 class="view-project-name">E-Commerce Platform</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="project-header-info">
+                    <div class="project-icon-selector">
+                        <div class="current-icon">
+                            <img class="project-icon ide-icon">
+                        </div>
+                        <button class="btn-project-edit">Bearbeiten</button>
+                    </div>
+                    <div class="ide-info">
+                        <span class="ide-badge view-project-ide">IntelliJ IDEA</span>
+                        <span class="last-edited-detail">Zuletzt bearbeitet: Vor 2 Stunden</span>
+                    </div>
+                </div>
+
+                <div class="path-card">
+                    <div class="path-icon">
+                        <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        >
+                        <path d="M3 6h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
+                        </svg>
+
+                    </div>
+                    <div class="stat-info">
+                        <span class="path-value">C:/Dan/Ordner/Projekt</span>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="16 18 22 12 16 6"></polyline>
+                                <polyline points="8 6 2 12 8 18"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value code-lines">12,847</span>
+                            <span class="stat-label">Zeilen Code</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value file-count">47</span>
+                            <span class="stat-label">Dateien</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value active-time">23</span>
+                            <span class="stat-label">Tage aktiv</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="languages-section">
+                    <h3>Programmiersprachen</h3>
+                    <div class="language-bars">
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-danger view-project-delete">Projekt löschen</button>
+                <button class="btn-danger view-project-remove">Projekt entfernen</button>
+                <button class="btn-primary view-project-open">Projekt öffnen</button>
+            </div>
+        </div>
+
+    </div>
+
+
+</body>
+</html>

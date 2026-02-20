@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Maker</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <script src="../assets/ts/index.js" type="module"></script>
+</head>
+<body>
+    <!-- Dashboard -->
+
+    <div id="prefabs">
+        <div class="project-card prefab">
+            <div class="project-icon ide-icon">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/IntelliJ_IDEA_Icon.svg/960px-IntelliJ_IDEA_Icon.svg.png">
+            </div>
+            <div class="project-info">
+                <h3>E-Commerce Platform</h3>
+                <div class="project-meta">
+                    <span class="ide-badge">IntelliJ</span>
+                    <span class="last-edited">Vor 2 Stunden</span>
+                </div>
+            </div>
+        </div>
+        <div class="language-item prefab">
+            <div class="language-header">
+                <span class="language-name">Java</span>
+                <span class="language-percent">65.4%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 65.4%; background: #b07219;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard">
+        <header class="dashboard-header">
+            <h1>Project Maker</h1>
+            <div class="action-btns">
+                <button class="btn-primary" id="add-template-btn">
+
+                    Templates
+                </button>
+
+                <button class="btn-primary" id="add-project-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Hinzufügen
+                </button>
+
+                <button class="btn-primary" id="create-project-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Erstellen
+                </button>
+
+                <button class="btn-primary" id="settings-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+
+        </header>
+
+        <div class="search-filter-bar">
+            <div class="search-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <input type="text" placeholder="Projekte durchsuchen...">
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-value="-1">Alle</button>
+                <button class="filter-btn" data-value="0">IntelliJ</button>
+                <button class="filter-btn" data-value="1">VS Code</button>
+                <button class="filter-btn" data-value="2">Visual Studio</button>
+
+                <div class="sort-after select">
+                    <div class="active-option">
+                        <img src="https://cdn-icons-png.flaticon.com/128/12087/12087830.png">
+                        <h4 class="active-option"></h4>
+                    </div>
+                    <div class="dropdown">
+                        <div class="option">
+                            <img src="https://cdn-icons-png.flaticon.com/128/12087/12087830.png">
+                            <h4>Datum</h4>
+                        </div>
+                        <div class="option">
+                            <img src="https://cdn-icons-png.flaticon.com/128/12087/12087830.png">
+                            <h4>Name</h4>
+                        </div>
+
+                        <div class="option">
+                            <img src="https://cdn-icons-png.flaticon.com/128/12087/12087830.png">
+                            <h4>Ide</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="projects-grid">
+
+        </div>
+    </div>
+
+    <!-- Create Project Modal -->
+    <div class="modal-overlay">
+        <div class="modal project-create-modal">
+            <div class="modal-header">
+                <h2>Neues Projekt erstellen</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="project-name">Projektname</label>
+                    <input type="text" id="project-name" placeholder="Mein neues Projekt">
+                </div>
+
+                <div class="form-group">
+                    <label>IDE auswählen</label>
+                    <div class="ide-selector create">
+                        <div class="ide-option create selected" data-value = 0>
+                            <input type="radio" id="ide-intellij" name="ide" checked>
+                            <label for="ide-intellij">
+                                <div class="ide-icon intellij-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/IntelliJ_IDEA_Icon.svg/960px-IntelliJ_IDEA_Icon.svg.png">
+                                    
+                                </div>
+                                <span>IntelliJ IDEA</span>
+                            </label>
+                        </div>
+
+                        <div class="ide-option create" data-value = 1>
+                            <input type="radio" id="ide-vscode" name="ide">
+                            <label for="ide-vscode">
+                                <div class="ide-icon vscode-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/3840px-Visual_Studio_Code_1.35_icon.svg.png">
+                                </div>
+                                <span>VS Code</span>
+                            </label>
+                        </div>
+
+                        <div class="ide-option create" data-value = 2>
+                            <input type="radio" id="ide-vsstudio" name="ide">
+                            <label for="ide-vsstudio">
+                                <div class="ide-icon vsstudio-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Visual_Studio_Icon_2022.svg/960px-Visual_Studio_Icon_2022.svg.png">
+                                </div>
+                                <span>Visual Studio</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="project-template">Template</label>
+                    <div class="select project-template">
+                        <div class="active-option">
+                            <img src="https://cdn-icons-png.flaticon.com/128/15236/15236867.png">
+                            <h4 class="active-option">None</h4>
+                        </div>
+                        <div class="dropdown">
+                            <div class="option">
+                                <img src="https://cdn-icons-png.flaticon.com/128/15236/15236867.png">
+                                <h4>None</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-btn-sec">Abbrechen</button>
+                <button class="btn-primary create-project-confirm">Projekt erstellen</button>
+            </div>
+        </div>
+
+        <div class="modal project-edit-modal">
+            <div class="modal-header">
+                <h2>Projekt bearbeiten</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="project-edit-name">Projektname</label>
+                    <input type="text" id="project-edit-name" placeholder="ProjektName">
+                </div>
+
+                <div class="form-group">
+                    <label>IDE ändern</label>
+                    <div class="ide-selector edit">
+                        <div class="ide-option edit selected" data-value = 0>
+                            <input type="radio" id="edit-ide-intellij" name="ide" checked>
+                            <label for="ide-intellij">
+                                <div class="ide-icon intellij-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/IntelliJ_IDEA_Icon.svg/960px-IntelliJ_IDEA_Icon.svg.png">
+                                    
+                                </div>
+                                <span>IntelliJ IDEA</span>
+                            </label>
+                        </div>
+
+                        <div class="ide-option edit" data-value = 1>
+                            <input type="radio" id="edit-ide-vscode" name="ide">
+                            <label for="ide-vscode">
+                                <div class="ide-icon vscode-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/3840px-Visual_Studio_Code_1.35_icon.svg.png">
+                                </div>
+                                <span>VS Code</span>
+                            </label>
+                        </div>
+
+                        <div class="ide-option edit" data-value = 2>
+                            <input type="radio" id="edit-ide-vsstudio" name="ide">
+                            <label for="ide-vsstudio">
+                                <div class="ide-icon vsstudio-icon">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Visual_Studio_Icon_2022.svg/960px-Visual_Studio_Icon_2022.svg.png">
+                                </div>
+                                <span>Visual Studio</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="project-edit-icon">Projekt Icon</label>
+                    <input type="text" id="project-edit-icon" placeholder="https://img.icon">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary create-project-confirm">Übernehmen</button>
+            </div>
+        </div>
+
+
+        <div class="modal template-add-modal">
+            <div class="modal-header">
+                <h2>Template erstellen</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="template-add-name">Templatename</label>
+                    <div class="flex">
+                        <input type="text" id="template-add-name" placeholder="Java Template">
+                    </div>
+                </div>                
+                <div class="form-group">
+                    <label for="template-add-des">Template Beschreibung</label>
+                    <div class="flex">
+                        <input type="text" id="template-add-des" placeholder="Nützliches Java Template">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="template-add-cmd">Template Command</label>
+                    <div class="flex">
+                        <input type="text" id="template-add-cmd" placeholder="npm init">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="template-add-des">Template Icon</label>
+                    <div class="flex">
+                        <input type="text" id="template-icon" placeholder="https://img.icon">  
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-btn-sec">Abbrechen</button>
+                <button class="btn-primary add-template-confirm">Template erstellen</button>
+            </div>
+        </div>
+        
+ 
+        <div class="modal project-add-modal">
+            <div class="modal-header">
+                <h2>Projekt hinzufügen</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="project-add-path">Projektpfad</label>
+                    <div class="flex">
+                        <input type="text" id="project-add-path" placeholder="C:/Pfad">
+                        <button id="locate-btn">
+                            <svg
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#ffffff"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            >
+                            <path d="M3 6h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-btn-sec">Abbrechen</button>
+                <button class="btn-primary add-project-confirm">Projekt hinzufügen</button>
+            </div>
+        </div>
+
+        <div class="modal settings-modal">
+            <div class="modal-header">
+                <h2>Einstellungen</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="">Projekte Ordner</label>
+                    <div class="flex">
+                        <input type="text" id="projects-folder" placeholder="C:/">
+                        <button id="locate-btn-project-folder">
+                            <svg
+                            width="32"
+                            height="32"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#ffffff"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            >
+                            <path d="M3 6h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="">Template Names</label>
+                    <div class="embed-field">
+                        <h4>Beim erstellen alles in Ordner Kategorisieren?</h4>
+                        <label class="switch">
+                            <input type="checkbox" id="use-categories">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+    
+                <div class="form-group smallgap flex-col">
+                    <label for="">Programm Ordner</label>
+                    <div class="embed-field">
+                        <h4>Application Data</h4>
+                        <button class="btn-primary open-folder" id="open-application-folder">Öffnen</button>
+                    </div>
+                    <div class="embed-field">
+                        <h4>Template Ordner</h4>
+                        <button class="btn-primary open-folder" id="open-templates-folder">Öffnen</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-btn-sec">Abbrechen</button>
+                <button class="btn-primary settings-confirm">Speichern</button>
+            </div>
+        </div>
+
+        <div class="modal project-view-modal">
+            <div class="modal-header">
+                <h2 class="view-project-name">E-Commerce Platform</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="project-header-info">
+                    <div class="project-icon-selector">
+                        <div class="current-icon">
+                            <img class="project-icon ide-icon">
+                        </div>
+                        <button class="btn-project-edit">Bearbeiten</button>
+                    </div>
+                    <div class="ide-info">
+                        <span class="ide-badge view-project-ide">IntelliJ IDEA</span>
+                        <span class="last-edited-detail">Zuletzt bearbeitet: Vor 2 Stunden</span>
+                    </div>
+                </div>
+
+                <div class="path-card">
+                    <div class="path-icon">
+                        <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        >
+                        <path d="M3 6h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
+                        </svg>
+
+                    </div>
+                    <div class="stat-info">
+                        <span class="path-value">C:/Dan/Ordner/Projekt</span>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="16 18 22 12 16 6"></polyline>
+                                <polyline points="8 6 2 12 8 18"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value code-lines">12,847</span>
+                            <span class="stat-label">Zeilen Code</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value file-count">47</span>
+                            <span class="stat-label">Dateien</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value active-time">23</span>
+                            <span class="stat-label">Tage aktiv</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="languages-section">
+                    <h3>Programmiersprachen</h3>
+                    <div class="language-bars">
+
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-danger view-project-delete">Projekt löschen</button>
+                <button class="btn-danger view-project-remove">Projekt entfernen</button>
+                <button class="btn-primary view-project-open">Projekt öffnen</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+    "[xaml]": {},
+    "python.createEnvironment.trigger": "off",
+    "code-runner.clearPreviousOutput": true,
+    "explorer.confirmDelete": false,
+    "explorer.confirmDragAndDrop": false,
+    "liveServer.settings.donotShowInfoMsg": true,
+    "code-runner.executorMap": {
+    
+
+
+        "javascript": "python C:/Git/Azure/Dan/Projects/ProjectMaker/Backend/app.py",
+        "html": "python C:/Git/Azure/Dan/Projects/ProjectMaker/Backend/app.py",
+        "css": "python C:/Git/Azure/Dan/Projects/ProjectMaker/Backend/app.py",
+    },
+    "git.confirmSync": false,
+    "liveServer.settings.donotVerifyTags": true,
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+    "python.defaultInterpreterPath": "C:\\Users\\dan.bootz\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "github.copilot.enable": {
+        "*": false,
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false
+    },
+    "code-runner.runInTerminal": true
+}

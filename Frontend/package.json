@@ -1,0 +1,14 @@
+{
+  "name": "projectmaker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "compile" : "npx tsc --project tsconfig.json --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^5.9.3"
+  }
+}
