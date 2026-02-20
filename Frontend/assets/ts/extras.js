@@ -34,3 +34,23 @@ export function animateTextNumber(text , number , time = 1 , int = false){
         }, (time * 20) * i)
     }
 }
+
+export function relativeTimeFrom(date) {
+    const now = new Date();
+    const diffMs = now - new Date(date);
+    
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
+
+    if (seconds < 10) return "gerade eben";
+    if (seconds < 60) return `vor ${seconds} Sekunden`;
+    if (minutes < 60) return `vor ${minutes} ${minutes === 1 ? "Minute" : "Minuten"}`;
+    if (hours < 24) return `vor ${hours} ${hours === 1 ? "Stunde" : "Stunden"}`;
+    if (days < 30) return `vor ${days} ${days === 1 ? "Tag" : "Tagen"}`;
+    if (months < 12) return `vor ${months} ${months === 1 ? "Monat" : "Monaten"}`;
+    return `vor ${years} ${years === 1 ? "Jahr" : "Jahren"}`;
+}

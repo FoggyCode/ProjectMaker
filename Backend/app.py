@@ -7,16 +7,17 @@ import subprocess , shutil , threading
 import sys 
 import os
 from typing import List, Dict
+from datetime import datetime
 import time
 
 
 
 def resource_path(relative_path):
-    # Wenn als .exe (PyInstaller) ausgeführt
+
     if getattr(sys, 'frozen', False):
         base_path = sys._MEIPASS
     else:
-        # Normaler Python-Start
+
         base_path = os.path.abspath("../Frontend")
 
     return os.path.join(base_path, relative_path)
@@ -50,6 +51,9 @@ def getProjects():
         with open(path , "r") as f:
             projects = json.load(f)
             projects = [p for p in projects if os.path.exists(p["path"])]
+            for p in projects:
+                p["last_edited"] = get_last_modified(p["path"])
+                p["created_at"] = get_creation_date(p["path"])
             
             return success(projects)
     return error("projects.json does not exists in %AppData%")
@@ -116,7 +120,14 @@ def newProject():
         return success({"templateInfo" : info})
     return error(False)
 
+def get_last_modified(path):
 
+    try:
+        timestamp = os.path.getmtime(path)
+        return datetime.fromtimestamp(timestamp)
+    except FileNotFoundError:
+        return None
+    
 def copyTemplate(templatePath , path , projectName):
 
             
@@ -269,6 +280,19 @@ def setSettings():
         return error(e)
 
 
+def get_creation_date(path):
+
+    p = Path(path)
+    if not p.exists():
+        return None
+    
+    if sys.platform.startswith('win'):
+        return datetime.fromtimestamp(p.stat().st_ctime)
+    else:
+        try:
+            return datetime.fromtimestamp(p.stat().st_birthtime)  
+        except AttributeError:
+            return datetime.fromtimestamp(p.stat().st_ctime)
 
 MAX_FILES = 1000      
 FAST_FILE_SAMPLE = 500   
@@ -571,10 +595,10 @@ def choose_dir():
 
 if __name__ == '__main__':
     init()
-    #server.config['TEMPLATES_AUTO_RELOAD'] = True
-    #server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+    server.config['TEMPLATES_AUTO_RELOAD'] = True
+    server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
     webview.create_window('Project Maker', server , width=1200 , height=800 )
-    #webview.start(debug=True , http_server=True)
-    webview.start()
+    webview.start(debug=True , http_server=True)
+    #webview.start()
 
 

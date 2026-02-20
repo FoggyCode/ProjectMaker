@@ -31,7 +31,7 @@
                 <h3>E-Commerce Platform</h3>
                 <div class="template-meta">
                     <span class="ide-badge">IntelliJ</span>
-                    <span class="last-edited">Vor 2 Stunden</span>
+
                 </div>
             </div>
         </div>
@@ -463,7 +463,32 @@
                 <button class="btn-primary add-template-confirm">Template erstellen</button>
             </div>
         </div>
-        
+
+        <div class="modal project-delete-modal">
+            <div class="modal-header">
+                <h2>Projekt löschen</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <p class="big">Zum löschen <span style="font-weight: bold; color: rgb(255, 75, 75);" for="project-delete-name" id="project-delete-info">%Projektname%</span> eingeben</p>
+                    <div class="flex">
+                        <input type="text" id="project-delete-name" placeholder="C:/Pfad">
+                    </div>
+                </div>
+            
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-btn-sec">Abbrechen</button>
+                <button class="btn-danger project-delete-confirm">Projekt löschen</button>
+            </div>
+        </div>
  
         <div class="modal project-add-modal">
             <div class="modal-header">
@@ -641,7 +666,8 @@
                     </div>
                     <div class="ide-info">
                         <span class="ide-badge view-project-ide">IntelliJ IDEA</span>
-                        <span class="last-edited-detail">Zuletzt bearbeitet: Vor 2 Stunden</span>
+                        <span class="last-edited-detail"></span>
+                        <span class="created-at-detail"></span>
                     </div>
                 </div>
 

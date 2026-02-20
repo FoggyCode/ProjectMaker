@@ -13,6 +13,7 @@ export class Project {
         this.path = "";
         this.icon = "";
         this.last_edited = new Date();
+        this.created_at = new Date();
         this.name = name;
         this.ide = ide;
         this.path = path;
