@@ -595,10 +595,10 @@ def choose_dir():
 
 if __name__ == '__main__':
     init()
-    server.config['TEMPLATES_AUTO_RELOAD'] = True
-    server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+    #server.config['TEMPLATES_AUTO_RELOAD'] = True
+    #server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
     webview.create_window('Project Maker', server , width=1200 , height=800 )
-    webview.start(debug=True , http_server=True)
-    #webview.start()
+    #webview.start(debug=True , http_server=True)
+    webview.start()
 
 

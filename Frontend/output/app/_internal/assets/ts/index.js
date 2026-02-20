@@ -41,8 +41,9 @@ function inputs() {
     templateSelect();
 }
 window.overlay = function overlay(panelActive) {
-    let allPanel = ["project-view-modal", "settings-modal", "scan-projects-modal", "project-create-modal", "project-add-modal", "template-add-modal", "project-edit-modal" , "template-view-modal"];
+    let allPanel = ["project-view-modal", "settings-modal", "scan-projects-modal", "project-create-modal", "project-add-modal", "template-add-modal", "project-edit-modal" , "template-view-modal" , "project-delete-modal"];
     let notNone = false;
+
     allPanel.forEach(panel => {
         let npanel = document.querySelector("." + panel);
         npanel.style.display = panel == panelActive ? "flex" : "none";
@@ -86,6 +87,7 @@ function buttons() {
         overlay("scan-projects-modal");
         
     });
+
 
 
     // Confirm add
@@ -621,8 +623,22 @@ async function templateView(template) {
                 return t
             }
         })
+
+        fetch("/templates/delete?path=" + template.path).then(resp => resp.json()).then(data => {
+            console.log(data)
+            if (data.success){
+                templateUI()
+                overlay("")
+            }else{
+                alert(data.content)
+            }
+        })
+
+        
     }
 }
+
+
 
 function updateTemplate(template){
     fetch("/templates/edit?path=" + template.path, {
@@ -648,13 +664,22 @@ async function projectView(project) {
         }, 100);
     };
     document.querySelector(".view-project-delete").onclick = function () {
-        deleteProject(project);
-        saveProjects();
-        setTimeout(() => {
-            window.location.reload();
-        }, 200);
+        overlay("project-delete-modal");
+        document.querySelector("#project-delete-info").textContent = project.name 
+        document.querySelector(".project-delete-confirm").onclick = function(){
+            if (document.querySelector("#project-delete-name").value == project.name){
+                deleteProject(project);
+                saveProjects();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 200);
+            }else{
+                alert("Namen stimmen nicht überein!")
+            }
+        }
     };
     panel.querySelector(".last-edited-detail").textContent = "Zuletzt bearbeitet: " + new Date(project.last_edited).toLocaleString();
+    panel.querySelector(".created-at-detail").textContent = "Erstellt: " + new Date(project.created_at).toLocaleString();
     panel.querySelector(".ide-badge").textContent = Projects.ideString(project.ide);
     panel.querySelector(".ide-badge").classList = "ide-badge view-project-ide " + Projects.ideString(project.ide).toLowerCase();
 
@@ -761,10 +786,10 @@ function projectUi() {
         filtered = Projects.filterProjects({ "name": filterSearch }, filtered);
     }
     if (sortAfter === "Datum") {
-        filtered = filtered.sort((a, b) => new Date(a.last_edited).getTime() - new Date(b.last_edited).getTime());
+        filtered = filtered.sort((a, b) => new Date(b.last_edited).getTime() - new Date(a.last_edited).getTime());
     }
     if (sortAfter === "Datum absteigend") {
-        filtered = filtered.sort((a, b) => new Date(b.last_edited).getTime() - new Date(a.last_edited).getTime());
+        filtered = filtered.sort((a, b) => new Date(a.last_edited).getTime() - new Date(b.last_edited).getTime());
     }
     else if (sortAfter === "Name") {
         filtered = filtered.sort((a, b) => a.name.toLocaleLowerCase().localeCompare(b.name.toLocaleLowerCase()));
@@ -781,7 +806,7 @@ function projectUi() {
         });
         if (clone) {
             clone.querySelector(".project-info h3").textContent = project.name;
-            clone.querySelector(".project-info .last-edited").textContent = "Zuletzt bearbeitet: " + new Date(project.last_edited).toLocaleString();
+            clone.querySelector(".project-info .last-edited").textContent = "Zuletzt bearbeitet: " + extras.relativeTimeFrom(new Date(project.last_edited));
             clone.querySelector(".project-info .ide-badge").textContent = Projects.ideString(project.ide);
             clone.querySelector(".project-info .ide-badge").classList.add(Projects.ideString(project.ide).toLowerCase());
             let iconUrl = icons.filter(v => {

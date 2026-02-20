@@ -13,6 +13,7 @@ export class Project {
         this.path = "";
         this.icon = "";
         this.last_edited = new Date();
+        this.created_at = new Date();
         this.name = name;
         this.ide = ide;
         this.path = path;
@@ -40,6 +41,7 @@ export function addProject(name, ide, path, icon = null) {
 export function getProject(name) {
     return projects.filter(value => {
         if (value.name == name) {
+            console.log(value)
             return value;
         }
     })[0];
