@@ -63,7 +63,7 @@ export function filterProjects(args, projectsX = null) {
             endvalue = value.id == args.id ? value : null;
         }
         if (args.name != null) {
-            endvalue = value.name.includes(args.name) ? value : null;
+            endvalue = value.name.toLowerCase().includes(args.name.toLowerCase()) ? value : null;
         }
         if (args.ide != null) {
             endvalue = value.ide == args.ide ? value : null;

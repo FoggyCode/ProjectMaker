@@ -147,9 +147,11 @@ def findFile(path ,file):
     return next(searchpath.glob(file), None)
 
 
+
 @server.route("/projects/open" , methods = ["GET"])
 def openProject():
     path = request.args.get("path")
+    path = Path(path).resolve()
     ide = request.args.get("ide")
 
     print(ide)
