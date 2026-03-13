@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Maker</title>
     <link rel="stylesheet" href="../assets/css/styles.css">
-    <script src="../assets/ts/index.js" type="module"></script>
+    <script src="../assets/js/index.js" type="module"></script>
 </head>
 <body>
     <!-- Dashboard -->
@@ -489,7 +489,32 @@
                 <button class="btn-danger project-delete-confirm">Projekt löschen</button>
             </div>
         </div>
- 
+  
+        <div class="modal project-share-modal">
+            <div class="modal-header">
+                <h2>Projekt teilen</h2>
+                <button class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="project-share-link">Teilungs Link</label>
+                    <div class="flex">
+                        <input type="text" id="project-share-link" placeholder="C:/Pfad" readonly>
+                    </div>
+                </div>
+            
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary close-btn-sec">Abbrechen</button>
+                <button class="btn-primary open-project-link">Link öffnen</button>
+            </div>
+        </div>
         <div class="modal project-add-modal">
             <div class="modal-header">
                 <h2>Projekt hinzufügen</h2>
@@ -656,95 +681,110 @@
                 </button>
             </div>
             
-            <div class="modal-body">
-                <div class="project-header-info">
-                    <div class="project-icon-selector">
-                        <div class="current-icon">
-                            <img class="project-icon ide-icon">
+            <div class="modal-body view-project-group">
+                <div class="view-project-info">
+                    <div class="project-header-info">
+                        <div class="project-icon-selector">
+                            <div class="current-icon">
+                                <img class="project-icon ide-icon">
+                            </div>
+                            <button class="btn-project-edit">Bearbeiten</button>
                         </div>
-                        <button class="btn-project-edit">Bearbeiten</button>
+                        <div class="ide-info">
+                            <span class="ide-badge view-project-ide">IntelliJ IDEA</span>
+                            <span class="last-edited-detail"></span>
+                            <span class="created-at-detail"></span>
+                        </div>
                     </div>
-                    <div class="ide-info">
-                        <span class="ide-badge view-project-ide">IntelliJ IDEA</span>
-                        <span class="last-edited-detail"></span>
-                        <span class="created-at-detail"></span>
-                    </div>
-                </div>
 
-                <div class="path-card">
-                    <div class="path-icon">
-                        <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        >
-                        <path d="M3 6h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
-                        </svg>
-
-                    </div>
-                    <div class="stat-info">
-                        <span class="path-value">C:/Dan/Ordner/Projekt</span>
-                    </div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="16 18 22 12 16 6"></polyline>
-                                <polyline points="8 6 2 12 8 18"></polyline>
+                    <div class="path-card">
+                        <div class="path-icon">
+                            <svg
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            >
+                            <path d="M3 6h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" />
                             </svg>
+
                         </div>
                         <div class="stat-info">
-                            <span class="stat-value code-lines">12,847</span>
-                            <span class="stat-label">Zeilen Code</span>
+                            <span class="path-value">C:/Dan/Ordner/Projekt</span>
                         </div>
                     </div>
 
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                            </svg>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="16 18 22 12 16 6"></polyline>
+                                    <polyline points="8 6 2 12 8 18"></polyline>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value code-lines">12,847</span>
+                                <span class="stat-label">Zeilen Code</span>
+                            </div>
                         </div>
-                        <div class="stat-info">
-                            <span class="stat-value file-count">47</span>
-                            <span class="stat-label">Dateien</span>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value file-count">47</span>
+                                <span class="stat-label">Dateien</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-value active-time">23</span>
+                                <span class="stat-label">Tage aktiv</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                        </div>
-                        <div class="stat-info">
-                            <span class="stat-value active-time">23</span>
-                            <span class="stat-label">Tage aktiv</span>
+                    <div class="languages-section">
+                        <h3>Programmiersprachen</h3>
+                        <div class="language-bars">
+
                         </div>
                     </div>
+                                        
                 </div>
 
-                <div class="languages-section">
-                    <h3>Programmiersprachen</h3>
-                    <div class="language-bars">
 
-                    </div>
+                <div class="view-project-files">
+
                 </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-primary view-project-zip"><svg height="24" width="24" version="1.1" id="_x32_" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <style type="text/css"> .st0{fill:#ffffff;} </style> <g> <path class="st0" d="M378.409,0H208.294h-13.176l-9.314,9.314L57.016,138.102l-9.314,9.314v13.176v265.514 c0,47.36,38.528,85.895,85.895,85.895h244.811c47.36,0,85.889-38.535,85.889-85.895V85.896C464.298,38.528,425.769,0,378.409,0z M432.493,426.105c0,29.877-24.214,54.091-54.084,54.091H133.598c-29.877,0-54.091-24.214-54.091-54.091V160.591h83.717 c24.885,0,45.07-20.178,45.07-45.07V31.804h170.115c29.87,0,54.084,24.214,54.084,54.092V426.105z"></path> <path class="st0" d="M207.466,276.147c4.755-6.926,5.841-9.782,5.841-13.853c0-5.166-3.534-9.509-10.46-9.509h-43.464 c-5.977,0-9.506,3.805-9.506,8.965c0,5.159,3.529,8.825,9.506,8.825h29.339v0.272l-33.958,50.119 c-4.615,6.661-6.382,9.915-6.382,14.669c0,5.167,3.666,9.51,10.46,9.51h44.959c6.109,0,9.506-3.666,9.506-8.826 c0-5.166-3.397-8.965-9.506-8.965h-30.834v-0.272L207.466,276.147z"></path> <path class="st0" d="M247.684,251.968c-5.841,0-10.051,4.21-10.051,10.592v72.804c0,6.388,4.21,10.599,10.051,10.599 c5.704,0,9.915-4.21,9.915-10.599V262.56C257.599,256.178,253.388,251.968,247.684,251.968z"></path> <path class="st0" d="M323.344,252.785h-28.523c-5.432,0-8.693,3.533-8.693,8.825v73.754c0,6.388,4.21,10.599,10.051,10.599 c5.704,0,9.914-4.21,9.914-10.599v-22.406c0-0.545,0.272-0.817,0.817-0.817h16.433c20.102,0,32.192-12.226,32.192-29.612 C355.535,264.871,343.582,252.785,323.344,252.785z M322.122,294.888h-15.211c-0.545,0-0.817-0.272-0.817-0.81v-23.23 c0-0.545,0.272-0.816,0.817-0.816h15.211c8.42,0,13.448,5.027,13.448,12.498C335.569,290,330.542,294.888,322.122,294.888z"></path> </g> </g></svg>Zippen</button>
+                <button class="btn-primary view-project-share"><svg viewBox="-0.5 0 25 25" width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M13.47 4.13998C12.74 4.35998 12.28 5.96 12.09 7.91C6.77997 7.91 2 13.4802 2 20.0802C4.19 14.0802 8.99995 12.45 12.14 12.45C12.34 14.21 12.79 15.6202 13.47 15.8202C15.57 16.4302 22 12.4401 22 9.98006C22 7.52006 15.57 3.52998 13.47 4.13998Z" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>Teilen</button>
             </div>
             <div class="modal-footer">
-                <button class="btn-danger view-project-delete">Projekt löschen</button>
-                <button class="btn-danger view-project-remove">Projekt entfernen</button>
-                <button class="btn-primary view-project-open">Projekt öffnen</button>
+                <button class="btn-danger view-project-delete"><svg viewBox="0 0 24 24" width = "26" height = "26" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M10 11V17" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M14 11V17" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M4 7H20" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M6 7H12H18V18C18 19.6569 16.6569 21 15 21H9C7.34315 21 6 19.6569 6 18V7Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7H9V5Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>Löschen</button>
+                <button class="btn-danger view-project-remove"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Edit / Remove_Minus_Circle"> <path id="Vector" d="M8 12H16M12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>Entfernen</button>
+                <button class="btn-primary view-project-open"><svg viewBox="0 0 24 24" width="24" height = "24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M7 8L3 11.6923L7 16M17 8L21 11.6923L17 16M14 4L10 20" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>Öffnen</button>
             </div>
+             
         </div>
 
     </div>

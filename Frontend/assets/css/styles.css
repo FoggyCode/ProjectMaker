@@ -208,12 +208,16 @@ p.big{
     background: #dc3545;
     color: #ffffff;
     border: none;
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 0.5rem;
     border-radius: 8px;
+ 
     font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.25s ease;
 }
 
 .btn-primary.big{
@@ -436,9 +440,33 @@ p.big{
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
-.project-view-modal {
-    max-width: 700px;
+.view-project-group{
+    display: flex;
+    gap: 1rem;
+    padding: 2rem;
 }
+
+.project-view-modal {
+    max-width:fit-content;
+    max-height: 1500px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.view-project-info{
+    padding: 1rem;
+    width: 700px;
+    height: 700px;
+}
+
+.view-project-files{
+    padding: 1rem;
+    width: 700px;
+    height: 700px;
+}
+
+
 
 .modal-header {
     padding: 1.5rem 2rem;
@@ -972,6 +1000,21 @@ input[type ="checkbox"]:focus + .slider {
 }
 .view-project-remove:hover{
     background-color: rgb(100, 90, 0);
+}
+
+
+.view-project-share{
+    background-color: rgb(0, 199, 83);
+}
+.view-project-share:hover{
+    background-color: rgb(0, 199, 83);
+}
+
+.view-project-zip{
+    background-color: rgb(152, 0, 199);
+}
+.view-project-zip:hover{
+    background-color: rgb(199, 0, 139);
 }
 
 footer{

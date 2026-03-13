@@ -9,6 +9,8 @@ import os
 from typing import List, Dict
 from datetime import datetime
 import time
+import tunnel
+import share
 
 
 
@@ -75,12 +77,94 @@ def evaluateProject():
 
     return success(info)
 
+from export import toZip
+from queue import Queue
+
+@server.route("/projects/zip" , methods = ["GET"])
+def zipProject():
+    path = request.args.get("path")
+    notOpen = request.args.get("notOpen")
+
+    if not path: return error("No path was given!")
+
+    targetPath = os.path.join(appdataPath, "zips")
+
+    if not os.path.exists(targetPath):
+        os.makedirs(targetPath)
+
+    zipPath =  toZip(path , targetPath)
+
+    if (zipPath == False) : return error("An error occured!")
+    else:
+        zipPath = Path(zipPath)
+        if (not notOpen):
+            explorer(zipPath)
+
+    return success(str(zipPath))
+    
+
+shareServerPort = None
+
+@server.route("/projects/share" , methods = ["GET"])
+def shareProject():
+
+    global shareServerPort
+
+    path = request.args.get("path")
+
+    if not path : return error("No path was given!")
+
+    # Projekt id lokal verschlüsseln 
+    projectID = share.addProject(path)
+
+
+    host = request.host.split(":")[0]
+    myPort = request.host.split(":")[1]
+    url_queue = Queue()
+
+    if (shareServerPort == None):   
+        #Startet share server im hintergrund
+        port = share.startShareServer(myPort)
+        shareServerPort = port
+    else:
+        port = shareServerPort
+
+    
+    host = host  + ":" + str(port)
+
+
+    t = threading.Thread(
+        target=tunnel.openPort,
+        args=(host, url_queue),
+        daemon=True
+    )
+    t.start()
+
+    try:
+       
+        result = url_queue.get(timeout=20)  
+        result = result + "?id=" + projectID
+
+        print(result)
+        return success(result)
+    except:
+        return error("Tunnel konnte nicht erstellt werden")
+
+import webbrowser
+
+
+@server.route("/browser" , methods = ["GET"])
+def openBroser():
+    url = request.args.get("url")
+    if not url : return error("No url was given!")
+
+    webbrowser.open(url, new=2)  # new=2 → öffnet in einem neuen Tab
+
 @server.route("/projects/new" , methods = ["GET"])
 def newProject():
     path = request.args.get("path")
     name = os.path.basename(path)
     template = request.args.get("template")
-    print(template)
 
 
     if not os.path.exists(path):
@@ -205,7 +289,11 @@ def updateProjects():
     
 
 LANG_EXTENSIONS = {
+
     ".py": "Python",
+    ".md": "Markdown",
+    ".txt": "Text",
+    ".lua": "Lua",
     ".js": "JavaScript",
     ".ts": "TypeScript",
     ".java": "Java",
@@ -214,7 +302,40 @@ LANG_EXTENSIONS = {
     ".json": "JSON",
     ".cpp": "C++",
     ".c": "C",
-    ".cs": "C#"
+    ".cs": "C#",
+
+
+    ".jsx": "React JSX",
+    ".tsx": "React TypeScript",
+    ".vue": "Vue.js",
+    ".php": "PHP",
+    ".scss": "Sass",
+    ".sass": "Sass",
+
+
+    ".yaml": "YAML",
+    ".yml": "YAML",
+    ".toml": "TOML",
+    ".xml": "XML",
+    ".csv": "CSV",
+    ".env": "Environment Config",
+    ".ini": "Configuration",
+
+
+    ".sh": "Shell Script",
+    ".bat": "Batch",
+    ".ps1": "PowerShell",
+    ".sql": "SQL",
+    ".dockerfile": "Docker",
+
+    ".go": "Go",
+    ".rs": "Rust",
+    ".rb": "Ruby",
+    ".swift": "Swift",
+    ".kt": "Kotlin",
+    ".dart": "Dart",
+    ".pl": "Perl",
+    ".r": "R"
 }
 
 folders = {
@@ -227,17 +348,28 @@ def openExplorer():
     path = request.args.get("path")
     name = request.args.get("name")
 
+    if path:
+        result = explorer(path , name)
+        if (result):
+            return success("path opened!")
+        else:
+            return error("Cant open folder")
+    else:
+        return error("No path was given!")
+    
+def explorer(path , name = None):
+
     FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
     if path:
         path = os.path.normpath(path)
         subprocess.run([FILEBROWSER_PATH, path])
-        return success("Opened!")
+        return True
     elif name:
         if name in folders:
             subprocess.run([FILEBROWSER_PATH, os.path.normpath(folders[name])])
-            return success("Opened!")
-    else:
-        return error("No path was given!")
+            return True
+    return False
+
 
 @server.route("/settings" , methods = ["GET"])
 def getSettings():
@@ -595,12 +727,24 @@ def choose_dir():
     root.destroy()
     return success(path)
 
+
+from ports import find_free_port
+def run_flask():
+    # Startet Flask ohne den Reloader, da dieser in Threads Probleme macht
+    server.run(port = find_free_port() ,host="0.0.0.0" ,debug=False, use_reloader=False)
+
 if __name__ == '__main__':
     init()
-    #server.config['TEMPLATES_AUTO_RELOAD'] = True
-    #server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-    webview.create_window('Project Maker', server , width=1200 , height=800 )
-    #webview.start(debug=True , http_server=True)
-    webview.start()
+
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+
+
+
+    window = webview.create_window('Project Maker', server, width=1200, height=800)
+    server.config['TEMPLATES_AUTO_RELOAD'] = True
+    server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+    webview.start(debug=True , http_server=True)
+    
 
 
