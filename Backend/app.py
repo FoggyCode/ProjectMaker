@@ -142,7 +142,7 @@ def shareProject():
 
     try:
        
-        result = url_queue.get(timeout=20)  
+        result = url_queue.get(timeout=10)  
         result = result + "?id=" + projectID
 
         print(result)

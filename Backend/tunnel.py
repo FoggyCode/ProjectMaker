@@ -1,6 +1,6 @@
 
 import wexpect
-from pyngrok import ngrok
+
 childs = []
 
 def openPort(host , queue):
@@ -20,7 +20,7 @@ def openPort(host , queue):
     
 
     try:
-        index = child.expect(["password:", "http[s]?://[a-zA-Z0-9.-]+\.pinggy\.link"], timeout=10)
+        index = child.expect(["password:", "http[s]?://[a-zA-Z0-9.-]+\.pinggy\.link"], timeout=5)
         if index == 0:
             child.sendline(password)
     except wexpect.TIMEOUT:
@@ -31,7 +31,7 @@ def openPort(host , queue):
     pinggy_url = None
 
     try:
-        child.expect(url_regex, timeout=20)
+        child.expect(url_regex, timeout=5)
         pinggy_url = child.match.group(1)
     except wexpect.TIMEOUT:
         print("❌ URL wurde nicht gefunden! Prüfe deine Internetverbindung oder das Passwort.")

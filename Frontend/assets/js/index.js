@@ -462,6 +462,8 @@ function settingsView() {
     let panel = document.querySelector(".settings-modal");
     panel.querySelector("#projects-folder").value = settings.get("projectsFolder");
     panel.querySelector("#use-categories").checked = settings.get("categories");
+
+
 }
 function saveSettings() {
     let panel = document.querySelector(".settings-modal");
