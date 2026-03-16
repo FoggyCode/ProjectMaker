@@ -52,10 +52,10 @@ body {
 
 /* ── Layout ── */
 .share-page {
-    max-width: 1100px;
+    max-width: 1500px;
     margin: 0 auto;
     padding: 2.5rem 2rem 6rem;
-    display: grid;
+    display: flex;
     grid-template-columns: 1fr 340px;
     gap: 2rem;
     align-items: start;
@@ -360,6 +360,8 @@ body {
 /* ── Right Column (Sidebar) ── */
 .share-sidebar {}
 
+
+
 .sidebar-card {
     background: #252525;
     border: 1px solid #3a3a3a;
@@ -402,6 +404,9 @@ body {
     box-shadow: 0 4px 16px rgba(74, 158, 255, 0.35);
 }
 
+.files-sidebar{
+    min-width: 40rem;
+}
 .btn-copy-link {
     background: #2a2a2a;
     color: #e0e0e0;
@@ -491,9 +496,40 @@ body {
     color: #505050;
 }
 
+.prefab{
+    display: none !important;
+}
+
 .share-footer a {
     color: #4a9eff;
     text-decoration: none;
+}
+#file-icon , #folder-icon{
+    display: none;
+}
+
+.file-entry{
+    display: flex;
+    padding: 0.1rem 0.5rem;
+     border-bottom: 1px solid #3a3a3a;
+    align-items: center;
+    gap: 1rem;
+}
+
+.file-container{
+    background: #252525;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 0.25rem;
+    display: flex;
+    gap: 1rem;
+    cursor: pointer;
+    overflow-y: scroll !important;
+    flex-direction: column;
+    min-height: 55rem;
+    max-height: 55rem;
+    padding: 2rem;
+    margin-bottom: 1rem;
 }
 
 /* Responsive */
@@ -501,6 +537,10 @@ body {
     .share-page {
         grid-template-columns: 1fr;
         padding: 1.25rem 1rem 5rem;
+    }
+
+    .files-sidebar{
+        min-width: unset;
     }
 
     .share-sidebar {

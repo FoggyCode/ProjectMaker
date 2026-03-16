@@ -142,7 +142,9 @@ def shareProject():
 
     try:
        
-        result = url_queue.get(timeout=10)  
+        result = url_queue.get(timeout=30)
+        if result is None:
+            return error("Tunnel konnte nicht erstellt werden")
         result = result + "?id=" + projectID
 
         print(result)
@@ -153,12 +155,82 @@ def shareProject():
 import webbrowser
 
 
+
 @server.route("/browser" , methods = ["GET"])
 def openBroser():
     url = request.args.get("url")
     if not url : return error("No url was given!")
 
-    webbrowser.open(url, new=2)  # new=2 → öffnet in einem neuen Tab
+    webbrowser.open(url, new=2) 
+
+
+from flask import request
+import os
+from pathlib import Path
+
+@server.route("/projects/files", methods=["GET"])
+def getFiles():
+    path = request.args.get("path")
+
+    if not path:
+        return error("No path was given!")
+
+    path = Path(path)
+
+    if not path.exists():
+        return error("Path does not exist!")
+
+    results = []
+
+    for root, folders, files in os.walk(path):
+        root_path = Path(root)
+
+        for file in files:
+            try:
+                full_path = root_path / file
+
+                ending = "." + file.split(".")[1]
+                if LANG_EXTENSIONS.__contains__(ending):
+                    code = LANG_EXTENSIONS[ending] 
+                else:
+                    code = None
+
+                obj = {
+                    "type": "file",
+                    "name": file,
+                    "code" : code,
+                    "path": full_path.as_posix(),
+                    "root": root_path.as_posix(),
+                    "size": full_path.stat().st_size
+                }
+
+                results.append(obj)
+
+            except Exception:
+                pass
+
+        # Ordner
+        for folder in folders:
+            try:
+                full_folder_path = root_path / folder
+
+                obj = {
+                    "type": "folder",
+                    "name": folder,
+                    "mypath": full_folder_path.as_posix(),
+                    "root": root_path.as_posix(),
+                    "size": len(list(full_folder_path.iterdir()))
+                }
+
+                results.append(obj)
+
+            except Exception:
+                pass
+
+    return success(results)
+
+
+
 
 @server.route("/projects/new" , methods = ["GET"])
 def newProject():
@@ -742,9 +814,11 @@ if __name__ == '__main__':
 
 
     window = webview.create_window('Project Maker', server, width=1200, height=800)
-    server.config['TEMPLATES_AUTO_RELOAD'] = True
-    server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-    webview.start(debug=True , http_server=True)
+    #server.config['TEMPLATES_AUTO_RELOAD'] = True
+    #server.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+    #webview.start(debug=True , http_server=True)
+    
+    webview.start()
     
 
 

@@ -56,14 +56,18 @@ def getProject():
 
             resp = requests.get("http://127.0.0.1:" + str(flaskPort) + "/projects/info?path=" + proj["path"])
             respList = requests.get("http://127.0.0.1:" + str(flaskPort) + "/projects")
+            respFiles = requests.get("http://127.0.0.1:" + str(flaskPort) + "/projects/files?path="+ proj["path"])
 
             result  = {
-                "info" : resp.json(),
+                "info" : resp.json()
             }
             if respList.json():
                 for projL in respList.json()["content"]:
                     if projL["path"] == proj["path"]:
-                        result["proj"] = projL
+                        result["proj"] = projL            
+                        
+            if respFiles.json():
+                result["files"] = respFiles.json()
 
            
             return success(result)

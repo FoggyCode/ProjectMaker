@@ -9,9 +9,10 @@
     
 
 
-        "javascript": "python C:/Git/Azure/Dan/Projects/ProjectMaker/Backend/app.py",
-        "html": "python C:/Git/Azure/Dan/Projects/ProjectMaker/Backend/app.py",
-        "css": "python C:/Git/Azure/Dan/Projects/ProjectMaker/Backend/app.py",
+        "javascript": "cd Backend && python C:/Users/dan.bootz/Desktop/ProjectMaker/Backend/app.py",
+        "html": "cd Backend && python C:/Users/dan.bootz/Desktop/ProjectMaker/Backend/app.py",
+        "css": "cd Backend && python C:/Users/dan.bootz/Desktop/ProjectMaker/Backend/app.py",
+        "python": "python C:/Users/dan.bootz/Desktop/ProjectMaker/Backend/app.py"
     },
     "git.confirmSync": false,
     "liveServer.settings.donotVerifyTags": true,

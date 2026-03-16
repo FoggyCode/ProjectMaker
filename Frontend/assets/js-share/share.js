@@ -38,16 +38,22 @@ window.handleDownload = function handleDownload(){
 function fillFromResponse(apiResponse) {
 
     const info = apiResponse.info.content
-    console.log(info)
-    const { activeFor, files, lines, languages } = info;
+    const files = apiResponse.files.content
+    const project = apiResponse.proj
+
+    const { activeFor, lines, languages } = info;
+    let fileCount = info.files
+    currentPath = project.path.replace(/\\/g, "/")
+    renderFiles(files , currentPath)
     
 
     document.getElementById("stat-lines").textContent  = lines.toLocaleString("de-DE");
-    document.getElementById("stat-files").textContent  = files;
+    document.getElementById("stat-files").textContent  = fileCount;
+    
     document.getElementById("stat-days").textContent   = activeFor;
 
  
-    document.getElementById("info-files").textContent  = files;
+    document.getElementById("info-files").textContent  = fileCount;
     document.getElementById("info-lines").textContent  = lines.toLocaleString("de-DE");
 
     const container = document.getElementById("language-bars");
@@ -67,7 +73,7 @@ function fillFromResponse(apiResponse) {
             </div>`;
     });
 
-    let project = apiResponse.proj
+    
     console.log(project)
 
     const ide = IDE_MAP[project.ide] ?? IDE_MAP[0];
@@ -104,5 +110,72 @@ const IDE_MAP = {
 function formatDate(gmtString) {
     const date = new Date(gmtString);
     return date.toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+
+let currentPath
+
+async function renderFiles(files , basePath){
+
+  
+    let filePrefab = document.querySelector(".file-entry.prefab")
+    let fileList = document.querySelector(".file-container")
+   
+    let loadingIcon = fileList.querySelector(".files-loading");
+
+
+    fileList.replaceChildren(loadingIcon); 
+    loadingIcon.style.display = "none"
+
+
+
+    // Back
+
+    if (currentPath != basePath){
+        let clone = filePrefab.cloneNode(true)
+        clone.classList.remove("prefab")
+        clone.querySelector(".file-name").textContent = "Back"
+        let location = "?"
+
+        location = currentPath.replace(basePath , "")
+
+
+        
+        clone.querySelector(".file-size").textContent = location
+        clone.onclick = () => {
+            let splitted = currentPath.split("/")
+            currentPath = splitted.slice(0 , splitted.length - 1).join("/")
+            renderFiles(files , basePath)
+        }
+        fileList.appendChild(clone)
+    }
+    // Back
+
+    files.filter(v => v.root == currentPath).slice(0 , 100).forEach(file => {
+        let clone = filePrefab.cloneNode(true)
+        clone.path = file.mypath
+        clone.classList.remove("prefab")
+        clone.querySelector(".file-name").textContent = file.name
+        if (file.type == "file"){
+            clone.querySelector(".file-size").textContent = extras.formatBytes(file.size) + " Byte"
+            clone.querySelector("#file-icon").style.display = "flex"
+
+            if (file.code != null){
+                clone.querySelector("#file-icon").style.color = extras.getLanguageColor(file.code)
+            }
+        }else if (file.type == "folder"){
+            clone.querySelector(".file-size").textContent = file.size + " Datein"
+            clone.querySelector("#folder-icon").style.display = "flex"
+            clone.onclick = () => {
+                currentPath = clone.path.replace(/\\/g, "/");
+                renderFiles(files , basePath)
+            }
+        }
+
+
+        fileList.appendChild(clone)
+    });
+
+
 }
 

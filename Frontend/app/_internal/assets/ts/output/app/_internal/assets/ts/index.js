@@ -238,7 +238,6 @@ async function createProject() {
         let path = defaultPath + "/" + projectName;
         let category = settings.get("categories") == true ? templateSelected : null;
         await fetch("/projects/new?path=" + path + "&template=" + templateSelected.toString() + "&category=" + category).then(resp => resp.json()).then(data => {
-            console.log(data);
             if (data.success) {
                 let info = data.content.templateInfo;
                 let icon = null;

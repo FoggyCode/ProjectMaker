@@ -60,6 +60,22 @@
   {
    "optionDest": "datas",
    "value": "C:/Users/dan.bootz/Desktop/ProjectMaker/Frontend/templates;templates"
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/dan.bootz/Desktop/ProjectMaker/Backend/export.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/dan.bootz/Desktop/ProjectMaker/Backend/ports.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/dan.bootz/Desktop/ProjectMaker/Backend/share.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/dan.bootz/Desktop/ProjectMaker/Backend/tunnel.py;."
   }
  ],
  "nonPyinstallerOptions": {

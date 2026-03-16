@@ -49,6 +49,17 @@ window.overlay = function overlay(panelActive) {
         npanel.style.display = panel == panelActive ? "flex" : "none";
         notNone = panel == panelActive ? true : notNone;
     });
+
+    let dashboard = document.querySelector(".dashboard");
+    if (panelActive == false){
+        dashboard.style.pointerEvents = "all";
+    }else{
+       dashboard.style.pointerEvents = "none";
+    }
+
+    console.log(document.querySelector(".dashboard").style.overflow )
+   
+
     let overlayPanel = document.querySelector(".modal-overlay");
     overlayPanel.style.display = notNone ? "flex" : "none";
 }
@@ -233,7 +244,6 @@ async function scanPrepare(){
 
     if (info.success){
         scan = info.content
-        console.log(scan)
         document.querySelector(".scan-prepare-count").textContent ="Datein/Ordner zu scannen: " + scan.entries
         document.querySelector(".scan-start-btn").style.display = "flex"
 
@@ -244,7 +254,7 @@ async function scanPrepare(){
 }
 
 function startScan(){
-    console.log(scan)
+
     if (scan == null) {alert("No scan prepared!")}
 
     // Start
@@ -393,7 +403,6 @@ function options() {
     let ideEditOptions = document.querySelectorAll(".ide-option.edit");
     ideEditOptions.forEach(element => {
         element.addEventListener("click", function () {
-            console.log(element);
             ideEditOptions.forEach(element => {
                 element.classList.remove("selected");
             });
@@ -652,11 +661,34 @@ function updateTemplate(template){
     })
 }
 
+
+
 // Sort after sort-after select
 async function projectView(project) {
     document.querySelector(".view-project-name").textContent = project.name;
     document.querySelector(".view-project-ide").textContent = Projects.ideString(project.ide);
     let panel = document.querySelector(".project-view-modal");
+
+    currentPath = project.path.replace(/\\/g, "/");
+
+    // Loading Icon
+    let loadingIcon = panel.querySelector(".files-loading");
+    loadingIcon.style.display = "flex"
+    // Liste replacen
+    let fileList = document.querySelector(".file-container")
+    fileList.replaceChildren(loadingIcon); 
+
+    fetch("/projects/files?path=" + project.path).then(resp => resp.json()).then((data) => {
+        if (data.success){
+            let files = data.content
+            renderFiles(files , currentPath , project)
+        }else{
+            alert("Files couldnt be loaded!")
+        }
+    })
+
+    
+
     document.querySelector(".view-project-remove").onclick = function () {
         Projects.removeProject(project.id);
         // Deleted
@@ -667,16 +699,33 @@ async function projectView(project) {
     };
 
     document.querySelector(".view-project-zip").onclick = async function(){
+        let zipIcon = document.querySelector("#zip-icon")
+        let zipWait = document.querySelector("#zip-wait")
+
+        zipIcon.style.display = "none"
+        zipWait.style.setProperty("display", "flex", "important");
+        console.log(zipWait.style.display)
         fetch("/projects/zip?path=" + project.path).then(resp => resp.json()).then(data => {
             console.log(data)
+            zipIcon.style.display = "flex"
+            zipWait.style.display = "none"
         })
     }
 
     document.querySelector(".view-project-share").onclick = async function(){
+        let shareIcon = document.querySelector("#share-icon")
+        let shareWait = document.querySelector("#share-wait")
+
+        shareIcon.style.display = "none"
+        shareWait.style.setProperty("display", "flex", "important");
+
         fetch("/projects/share?path=" + project.path).then(resp => resp.json()).then(data => {
             console.log(data)
+            shareIcon.style.display = "flex"
+            shareWait.style.display = "none"
             if (data.success){
                 let url = data.content
+
                 overlay("project-share-modal")
 
                 document.querySelector("#project-share-link").value = url
@@ -722,11 +771,8 @@ async function projectView(project) {
         fetch("/explorer?path=" + project.path);
     };
     // Edit project
-    console.log("xxx")
     panel.querySelector(".btn-project-edit").onclick = function () {
-        console.log("Xx")
         overlay("project-edit-modal");
-        console.log("Xx")
         editProject(project);
     };
     // Open Project
@@ -794,7 +840,84 @@ async function projectView(project) {
         // Language animation
     });
 
+    
+
 }
+
+let currentPath
+
+async function renderFiles(files , basePath , project){
+
+  
+    let filePrefab = document.querySelector(".file-entry.prefab")
+    let fileList = document.querySelector(".file-container")
+   
+    let loadingIcon = fileList.querySelector(".files-loading");
+
+
+    fileList.replaceChildren(loadingIcon); 
+    loadingIcon.style.display = "none"
+
+
+
+    // Back
+
+    if (currentPath != basePath){
+        let clone = filePrefab.cloneNode(true)
+        clone.classList.remove("prefab")
+        clone.querySelector(".file-name").textContent = "Back"
+        let location = "?"
+
+        location = currentPath.replace(basePath , "")
+
+        clone.querySelector(".file-size").textContent = location
+        clone.onclick = () => {
+            let splitted = currentPath.split("/")
+            currentPath = splitted.slice(0 , splitted.length - 1).join("/")
+            renderFiles(files , basePath , project)
+        }
+        fileList.appendChild(clone)
+    }
+    // Back
+
+    files.filter(v => v.root == currentPath).slice(0 , 100).forEach(file => {
+        let clone = filePrefab.cloneNode(true)
+        
+        clone.classList.remove("prefab")
+        clone.querySelector(".file-name").textContent = file.name
+        if (file.type == "file"){
+            clone.path = file.path
+            clone.querySelector(".file-size").textContent = extras.formatBytes(file.size) + " Byte"
+            clone.querySelector("#file-icon").style.display = "flex"
+
+            if (file.code != null){
+                clone.querySelector("#file-icon").style.color = extras.getLanguageColor(file.code)
+                console.log(extras.getLanguageColor(file.code))
+            }
+
+            clone.onclick = () => {
+                fetch("/projects/open?path=" + clone.path + "&ide="+Projects.ideString(project.ide)).then(resp => resp.json()).then(data => {
+
+                })
+            }
+        }else if (file.type == "folder"){
+            clone.path = file.mypath
+            clone.querySelector(".file-size").textContent = file.size + " Datein"
+            clone.querySelector("#folder-icon").style.display = "flex"
+            clone.onclick = () => {
+                currentPath = clone.path.replace(/\\/g, "/");
+                renderFiles(files , basePath , project)
+            }
+        }
+
+
+        fileList.appendChild(clone)
+    });
+
+
+}
+
+
 let icons = [
     { title: "vsstudio", link: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Visual_Studio_Icon_2022.svg/960px-Visual_Studio_Icon_2022.svg.png" },
     { title: "vscode", link: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/3840px-Visual_Studio_Code_1.35_icon.svg.png" },
