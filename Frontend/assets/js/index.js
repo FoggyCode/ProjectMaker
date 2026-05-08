@@ -173,16 +173,16 @@ function buttons() {
             element.classList.add("active");
             let category = parseInt(element.dataset.value);
             if (category == -1) {
-                filterIde = null;
+                filterIndex = null;
             }
             else {
-                filterIde = category;
+                filterIndex = category;
             }
             projectUi();
         });
     });
 }
-let filterIde = null;
+let filterIndex = null;
 let filterSearch = null;
 function editProject(project) {
     document.querySelector(".project-edit-modal .close-btn").onclick = async function () {
@@ -926,8 +926,17 @@ let icons = [
 function projectUi() {
     let prefab = document.querySelector(".project-card");
     let filtered = Projects.projects;
-    if (filterIde != null) {
-        filtered = Projects.filterProjects({ "ide": filterIde });
+    if (filterIndex != null) {
+        // Favourites
+        if (filterIndex == 3){
+            console.log("Filtersxs")
+            filtered = Projects.filterProjects({ "favourite": true });
+            console.log(filtered)
+        }else{
+            // Ide Filter
+            filtered = Projects.filterProjects({ "ide": filterIndex });
+        }
+        
     }
     if (filterSearch != null) {
         filtered = Projects.filterProjects({ "name": filterSearch }, filtered);
@@ -946,12 +955,18 @@ function projectUi() {
     }
     document.querySelector(".projects-grid").replaceChildren();
     filtered.forEach(project => {
+
+
         let clone = prefab.cloneNode(true);
-        clone.addEventListener("click", async function () {
-            projectView(project);
-            overlay("project-view-modal");
+        clone.addEventListener("click", async function (ev) {
+            if (!ev.target.classList.contains("override")){
+                projectView(project);
+                overlay("project-view-modal");
+            }
         });
         if (clone) {
+
+
             clone.querySelector(".project-info h3").textContent = project.name;
             clone.querySelector(".project-info .last-edited").textContent = "Zuletzt bearbeitet: " + extras.relativeTimeFrom(new Date(project.last_edited));
             clone.querySelector(".project-info .ide-badge").textContent = Projects.ideString(project.ide);
@@ -968,6 +983,27 @@ function projectUi() {
             let iconElement = clone.querySelector(".project-icon img");
             iconElement.src = iconUrl;
             clone.classList.remove("prefab");
+
+
+            // Favourite
+            clone.querySelector(".project-favourite").onclick = (ev) => {
+                let worked = Projects.favouriteProject(project.name)
+                if (worked){
+                    updateProjects()
+                    projectUi()
+                }else{
+                    alert("Error with favouriting the project!")
+                }
+            }
+
+            if (project.favourite){
+                clone.classList.add("favourite")
+                clone.querySelector(".project-favourite").textContent = "❌" 
+            }
+
+            
+            // Favourite
+
             document.querySelector(".projects-grid").appendChild(clone);
         }
     });

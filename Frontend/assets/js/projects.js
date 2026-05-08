@@ -6,12 +6,13 @@ export var ide;
     ide[ide["VSSTUDIO"] = 3] = "VSSTUDIO";
 })(ide || (ide = {}));
 export class Project {
-    constructor(name, ide, path, icon) {
+    constructor(name, ide, path, icon , favourite) {
         this.name = "";
         this.id = 0;
         this.ide = null;
         this.path = "";
         this.icon = "";
+        this.favourite = favourite
         this.last_edited = new Date();
         this.created_at = new Date();
         this.name = name;
@@ -29,13 +30,13 @@ export function ideString(idex) {
 }
 export let projects = [];
 export function setProjects(list) {
-    projects = list.map(p => Object.assign(new Project(p.name, p.ide, p.path, p.icon), p));
+    projects = list.map(p => Object.assign(new Project(p.name, p.ide, p.path, p.icon , p.favourite), p));
 }
 export function addProject(name, ide, path, icon = null) {
     if (getProject(name) != null) {
         return false;
     }
-    projects.push(new Project(name, ide - 1, path, icon));
+    projects.push(new Project(name, ide - 1, path, icon , false));
     return true;
 }
 export function getProject(name) {
@@ -53,6 +54,17 @@ export function removeProject(id) {
         }
     });
 }
+
+export function favouriteProject(name){
+    let project = getProject(name)
+    if (project){
+        
+        project.favourite = !project.favourite ?? false
+        return true
+    }else{
+        return false
+    }
+}
 export function filterProjects(args, projectsX = null) {
     if (projectsX == null) {
         projectsX = projects;
@@ -67,6 +79,9 @@ export function filterProjects(args, projectsX = null) {
         }
         if (args.ide != null) {
             endvalue = value.ide == args.ide ? value : null;
+        }
+        if (args.favourite != null) {
+            endvalue = value.favourite == args.favourite ? value : null;
         }
         return endvalue;
     });

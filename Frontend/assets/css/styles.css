@@ -77,6 +77,28 @@ input[type="file"]{
     height: 4rem;
 }
 
+
+.project-favourite{
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2rem;
+    height: 2rem;
+    opacity: 0;
+    background: #252525;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.project-favourite:hover{
+   border: 1px solid #4a9eff;
+    scale: 1.1;
+    background-color: #252525;
+}
+
+
 #scan-ongoing{
     display: none;
 }
@@ -343,16 +365,32 @@ p.big{
     border: 1px solid #3a3a3a;
     border-radius: 12px;
     padding: 1.5rem;
+    position: relative;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
     gap: 1rem;
 }
 
+.template-card:hover{
+    border-color: #4a9eff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+}
+
+.project-card.favourite{
+    border:  1px solid rgb(255, 244, 86);
+    box-shadow: 0 4px 12px rgba(255, 246, 121, 0.199);
+}
+
 .project-card:hover {
     border-color: #4a9eff;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+}
+
+.project-card:hover .project-favourite{
+    opacity: 1;
 }
 
 .project-icon , .template-icon {

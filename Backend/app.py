@@ -38,6 +38,12 @@ templatesPath = os.path.join(os.getenv('APPDATA') , "ProjectMaker" , "templates"
 
 @server.route("/")
 def home():
+    global shareServerPort
+    myPort = request.host.split(":")[1]
+    if (shareServerPort == None):   
+        port = share.startShareServer(myPort)
+        shareServerPort = port
+
     return render_template("index.html")
 
 def success(content):
@@ -119,9 +125,10 @@ def shareProject():
 
 
     host = request.host.split(":")[0]
-    myPort = request.host.split(":")[1]
+   
     url_queue = Queue()
 
+    myPort = request.host.split(":")[1]
     if (shareServerPort == None):   
         #Startet share server im hintergrund
         port = share.startShareServer(myPort)
@@ -137,20 +144,20 @@ def shareProject():
         target=tunnel.openPort,
         args=(host, url_queue),
         daemon=True
-    )
+    )   
     t.start()
 
     try:
        
-        result = url_queue.get(timeout=30)
-        if result is None:
-            return error("Tunnel konnte nicht erstellt werden")
-        result = result + "?id=" + projectID
+        result = url_queue.get(timeout=15)
+        if result["error"] == True:
+            return error("Tunnel konnte nicht erstellt werden: " + result["content"])
+        else:
+            result["content"] = result["content"] + "?id=" + projectID
 
-        print(result)
-        return success(result)
-    except:
-        return error("Tunnel konnte nicht erstellt werden")
+        return success(result["content"])
+    except Exception as e:
+        return error(str(e) + " couldnt not create tunnel")
 
 import webbrowser
 
