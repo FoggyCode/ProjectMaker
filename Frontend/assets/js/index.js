@@ -155,8 +155,26 @@ async function checkForUpdate() {
             `🚀 Version ${info.version} ist verfügbar!`;
         banner.style.display = "flex";
         document.body.classList.add("has-banner");
-        document.getElementById("update-banner-btn").onclick = () => {
-            fetch("/browser?url=" + encodeURIComponent(info.url));
+        document.getElementById("update-banner-btn").onclick = async () => {
+            const btn = document.getElementById("update-banner-btn");
+            btn.disabled = true;
+            btn.textContent = "Wird heruntergeladen...";
+            await fetch("/do-update");
+            const poll = setInterval(async () => {
+                const res = await fetch("/update-status").then(r => r.json()).catch(() => null);
+                if (!res?.success) return;
+                const s = res.content;
+                if (s.state === "restarting") {
+                    btn.textContent = "Neustart läuft...";
+                    clearInterval(poll);
+                } else if (s.state === "error") {
+                    clearInterval(poll);
+                    btn.disabled = false;
+                    btn.textContent = "Jetzt aktualisieren";
+                    alert("Update fehlgeschlagen: " + s.error + "\n\nBitte manuell aktualisieren.");
+                    fetch("/browser?url=" + encodeURIComponent(info.url));
+                }
+            }, 1000);
         };
         document.getElementById("update-banner-dismiss").onclick = () => {
             banner.style.display = "none";
