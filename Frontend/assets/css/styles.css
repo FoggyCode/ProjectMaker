@@ -1779,7 +1779,7 @@ body.has-banner .dashboard {
 
 #selection-toolbar {
     position: fixed;
-    bottom: 72px;
+    bottom: 92px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 200;
