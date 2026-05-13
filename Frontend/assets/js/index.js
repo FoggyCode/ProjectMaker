@@ -30,6 +30,7 @@ function saveProjects() {
 let folders = [];
 let currentFolderId = null;
 let selectedFolderColor = "#4a9eff";
+let editingFolderId = null;
 
 async function loadFolders() {
     const data = await fetch("/folders").then(r => r.json());
@@ -62,6 +63,16 @@ function deleteFolder(id) {
         hideBreadcrumb();
     }
     projectUi();
+}
+
+function editFolder(folder) {
+    editingFolderId = folder.id;
+    selectedFolderColor = folder.color;
+    document.getElementById("folder-create-name").value = folder.name;
+    document.querySelectorAll(".folder-color-btn").forEach(b => {
+        b.classList.toggle("active", b.dataset.color === folder.color);
+    });
+    overlay("folder-create-modal");
 }
 
 function moveProjectsToFolder(projectNames, folderId) {
@@ -175,7 +186,11 @@ window.overlay = function overlay(panelActive) {
 // ── Buttons ───────────────────────────────────────────────────────────────────
 
 function buttons() {
-    document.querySelector("#create-project-btn")?.addEventListener("click", () => overlay("project-create-modal"));
+    document.querySelector("#create-project-btn")?.addEventListener("click", () => {
+        selectedCreateFolderId = currentFolderId;
+        populateCreateFolderDropdown();
+        overlay("project-create-modal");
+    });
     document.querySelector("#add-project-btn")?.addEventListener("click", () => overlay("project-add-modal"));
     document.querySelector("#add-template-btn")?.addEventListener("click", () => overlay("template-add-modal"));
 
@@ -255,7 +270,13 @@ function buttons() {
     document.querySelector(".folder-create-confirm").addEventListener("click", () => {
         const name = document.getElementById("folder-create-name").value.trim();
         if (name.length < 1) { alert("Bitte einen Ordnernamen eingeben!"); return; }
-        createFolder(name, selectedFolderColor);
+        if (editingFolderId) {
+            const f = folders.find(x => x.id === editingFolderId);
+            if (f) { f.name = name; f.color = selectedFolderColor; saveFolders(); projectUi(); }
+            editingFolderId = null;
+        } else {
+            createFolder(name, selectedFolderColor);
+        }
         overlay("");
     });
 
@@ -292,15 +313,22 @@ function getVisibleProjects() {
 function deleteSelected() {
     if (selectedProjects.size === 0) return;
     const names = [...selectedProjects];
-    if (!confirm(`${names.length} Projekt(e) wirklich löschen (Ordner werden gelöscht)?`)) return;
-    const toDelete = Projects.projects.filter(p => names.includes(p.name));
-    toDelete.forEach(p => {
-        fetch("/projects/delete?path=" + p.path);
-        Projects.removeProject(p.id);
-    });
-    saveProjects();
-    exitSelectionMode();
-    setTimeout(() => window.location.reload(), 300);
+    overlay("project-delete-modal");
+    document.querySelector("#project-delete-info").textContent = "ALLE LÖSCHEN";
+    document.querySelector(".project-delete-confirm").onclick = () => {
+        if (document.querySelector("#project-delete-name").value !== "ALLE LÖSCHEN") {
+            alert("Bitte genau „ALLE LÖSCHEN" eingeben!");
+            return;
+        }
+        const toDelete = Projects.projects.filter(p => names.includes(p.name));
+        toDelete.forEach(p => {
+            fetch("/projects/delete?path=" + p.path);
+            Projects.removeProject(p.id);
+        });
+        saveProjects();
+        exitSelectionMode();
+        setTimeout(() => window.location.reload(), 300);
+    };
 }
 
 function openMoveToFolderModal() {
@@ -326,6 +354,36 @@ function openMoveToFolderModal() {
 let filterIndex = null;
 let filterSearch = null;
 
+// ── Create folder select ──────────────────────────────────────────────────────
+
+let selectedCreateFolderId = null;
+
+function populateCreateFolderDropdown() {
+    const list = document.getElementById("create-folder-dropdown");
+    list.replaceChildren();
+
+    const noneItem = document.createElement("div");
+    noneItem.className = "folder-select-item" + (!selectedCreateFolderId ? " active" : "");
+    noneItem.dataset.folderId = "";
+    noneItem.innerHTML = `<div class="folder-select-dot" style="background:#555"></div><span>Kein Ordner</span>`;
+    noneItem.onclick = () => { selectedCreateFolderId = null; highlightFolderItem(list, noneItem); };
+    list.appendChild(noneItem);
+
+    folders.forEach(f => {
+        const item = document.createElement("div");
+        item.className = "folder-select-item" + (selectedCreateFolderId === f.id ? " active" : "");
+        item.dataset.folderId = f.id;
+        item.innerHTML = `<div class="folder-select-dot" style="background:${f.color}"></div><span>${f.name}</span>`;
+        item.onclick = () => { selectedCreateFolderId = f.id; highlightFolderItem(list, item); };
+        list.appendChild(item);
+    });
+}
+
+function highlightFolderItem(list, active) {
+    list.querySelectorAll(".folder-select-item").forEach(i => i.classList.remove("active"));
+    active.classList.add("active");
+}
+
 // ── Edit Project ──────────────────────────────────────────────────────────────
 
 function editProject(project) {
@@ -338,17 +396,16 @@ function editProject(project) {
         el.classList.remove("selected");
         if (el.dataset.value === project.ide.toString()) el.classList.add("selected");
     });
-    document.querySelector("#project-edit-icon").value = project.icon;
+    initIconPicker(project.icon ?? "");
     document.querySelector(".project-edit-modal .create-project-confirm").onclick = () => saveProject(project);
 }
 
 function saveProject(project) {
     const projectName = document.querySelector("#project-edit-name").value;
     const projectIde = parseInt(document.querySelector(".ide-option.edit.selected").dataset.value);
-    let projectIcon = document.querySelector("#project-edit-icon").value;
-    icons.forEach(el => { if (el.link.toString() === projectIcon.toString() && projectIcon !== "") projectIcon = ""; });
-    if (projectIcon === "") {
-        icons.forEach(el => { if (el.title === Projects.ideString(projectIde).toLocaleLowerCase()) projectIcon = el.link; });
+    let projectIcon = _iconPickerValue || document.querySelector("#project-edit-icon").value.trim();
+    if (!projectIcon) {
+        icons.forEach(el => { if (el.title === Projects.ideString(projectIde).toLowerCase()) projectIcon = el.link; });
     }
     project.update({ icon: projectIcon, name: projectName, ide: projectIde });
     saveProjects();
@@ -642,6 +699,11 @@ async function projectView(project) {
     const fetched = await fetchInfo(project.path);
     const info = fetched ?? { lines: 0, files: 0, activeFor: 0, languages: [], approximate: false };
 
+    // Cache top-2 languages for project card tags
+    if (info.languages.length > 0) {
+        localStorage.setItem("lang_" + project.path, JSON.stringify(info.languages.slice(0, 2)));
+    }
+
     extras.animateTextNumber(panel.querySelector(".active-time"), info.activeFor, 1, true);
     extras.animateTextNumber(panel.querySelector(".file-count"), info.files, 1, true);
     extras.animateTextNumber(panel.querySelector(".code-lines"), info.lines, 1, true);
@@ -741,7 +803,7 @@ async function createProject() {
                 let icon = null;
                 icons.forEach(el => { if (el.title === Projects.ideString(ideNum)) icon = el.link; });
                 if (info?.icon) icon = info.icon;
-                Projects.addProject(projectName, ideNum, path, icon);
+                Projects.addProject(projectName, ideNum, path, icon, selectedCreateFolderId);
                 saveProjects();
                 setTimeout(() => window.location.reload(), 300);
             }
@@ -809,6 +871,75 @@ async function fetchInfo(path) {
     });
 }
 
+// ── Emoji icon picker ─────────────────────────────────────────────────────────
+
+const EMOJI_ICONS = [
+    "🚀","💡","🔥","⚡","🛠️","🎯","📦","🧩","🌐","🔒",
+    "🎮","🤖","🧠","📊","🗃️","🔬","🎨","🌙","☁️","🏗️",
+    "🧪","📡","🔑","🛡️","🐍","⚙️","📱","💻","🖥️","🌍"
+];
+
+let _iconPickerValue = "";
+
+function renderProjectIcon(imgEl, emojiEl, value) {
+    if (!value) { imgEl.style.display = "none"; emojiEl.style.display = "none"; return; }
+    if (value.startsWith("http") || value.startsWith("data:")) {
+        imgEl.src = value;
+        imgEl.style.display = "block";
+        emojiEl.style.display = "none";
+    } else {
+        emojiEl.textContent = value;
+        emojiEl.style.display = "block";
+        imgEl.style.display = "none";
+    }
+}
+
+function initIconPicker(currentValue) {
+    _iconPickerValue = currentValue ?? "";
+    const grid = document.getElementById("emoji-grid");
+    const previewImg = document.getElementById("icon-picker-preview-img");
+    const previewEmoji = document.getElementById("icon-picker-preview-emoji");
+    const urlInput = document.getElementById("project-edit-icon");
+    const fileInput = document.getElementById("icon-file-input");
+
+    grid.replaceChildren();
+    EMOJI_ICONS.forEach(em => {
+        const btn = document.createElement("div");
+        btn.className = "emoji-icon" + (_iconPickerValue === em ? " selected" : "");
+        btn.textContent = em;
+        btn.onclick = () => {
+            _iconPickerValue = em;
+            urlInput.value = "";
+            grid.querySelectorAll(".emoji-icon").forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+            renderProjectIcon(previewImg, previewEmoji, em);
+        };
+        grid.appendChild(btn);
+    });
+
+    urlInput.value = (currentValue && (currentValue.startsWith("http") || currentValue.startsWith("data:"))) ? currentValue : "";
+    urlInput.oninput = () => {
+        _iconPickerValue = urlInput.value.trim();
+        grid.querySelectorAll(".emoji-icon").forEach(b => b.classList.remove("selected"));
+        renderProjectIcon(previewImg, previewEmoji, _iconPickerValue);
+    };
+
+    fileInput.onchange = () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            _iconPickerValue = e.target.result;
+            urlInput.value = "";
+            grid.querySelectorAll(".emoji-icon").forEach(b => b.classList.remove("selected"));
+            renderProjectIcon(previewImg, previewEmoji, _iconPickerValue);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    renderProjectIcon(previewImg, previewEmoji, currentValue ?? "");
+}
+
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
 const icons = [
@@ -837,6 +968,12 @@ function projectUi() {
             clone.querySelector(".folder-card-icon").style.color = folder.color;
             clone.querySelector(".folder-card-icon").style.borderColor = folder.color + "40";
 
+            // Edit button
+            clone.querySelector(".folder-card-edit").onclick = ev => {
+                ev.stopPropagation();
+                editFolder(folder);
+            };
+
             // Delete button
             clone.querySelector(".folder-card-delete").onclick = ev => {
                 ev.stopPropagation();
@@ -854,7 +991,7 @@ function projectUi() {
             });
 
             clone.onclick = ev => {
-                if (ev.target.closest(".folder-card-delete")) return;
+                if (ev.target.closest(".folder-card-delete") || ev.target.closest(".folder-card-edit")) return;
                 currentFolderId = folder.id;
                 showBreadcrumb(folder);
                 projectUi();
@@ -913,6 +1050,23 @@ function projectUi() {
             clone.classList.add("dragging");
         });
         clone.addEventListener("dragend", () => clone.classList.remove("dragging"));
+
+        // Lang tags from cache
+        const langCache = localStorage.getItem("lang_" + project.path);
+        const langTagsEl = clone.querySelector(".project-lang-tags");
+        langTagsEl.replaceChildren();
+        if (langCache) {
+            JSON.parse(langCache).forEach(lang => {
+                const tag = document.createElement("span");
+                tag.className = "lang-tag";
+                tag.textContent = lang.title;
+                const color = extras.getLanguageColor(lang.title);
+                tag.style.background = color + "33";
+                tag.style.color = color;
+                tag.style.border = "1px solid " + color + "55";
+                langTagsEl.appendChild(tag);
+            });
+        }
 
         clone.querySelector(".project-info h3").textContent = project.name;
         clone.querySelector(".project-info .last-edited").textContent = "Zuletzt: " + extras.relativeTimeFrom(new Date(project.last_edited));
