@@ -683,6 +683,10 @@ def updateFolders():
 
 # ── Auto Updater ───────────────────────────────────────────────────────────────
 
+_update_status = {"state": "idle", "error": None}
+_EXE_RAW_URL = "https://raw.githubusercontent.com/FoggyCode/ProjectMaker/main/output/app.exe"
+
+
 @server.route("/check-update", methods=["GET"])
 def checkUpdate():
     try:
@@ -699,8 +703,75 @@ def checkUpdate():
                     "url": data.get("html_url", "https://github.com/FoggyCode/ProjectMaker/releases")
                 })
             return success({"update": False})
-    except Exception as e:
+    except Exception:
         return success({"update": False})
+
+
+@server.route("/do-update", methods=["GET"])
+def doUpdate():
+    _update_status["state"] = "downloading"
+    _update_status["error"] = None
+
+    def run():
+        try:
+            import urllib.request
+
+            if not getattr(sys, "frozen", False):
+                _update_status["state"] = "error"
+                _update_status["error"] = "Dev mode – self-update only works in packaged exe."
+                return
+
+            # Try release asset first, fall back to raw main branch
+            download_url = _EXE_RAW_URL
+            try:
+                api_url = "https://api.github.com/repos/FoggyCode/ProjectMaker/releases/latest"
+                req = urllib.request.Request(api_url, headers={"User-Agent": "ProjectMaker/" + VERSION})
+                with urllib.request.urlopen(req, timeout=10) as r:
+                    release = json.loads(r.read())
+                for asset in release.get("assets", []):
+                    if asset["name"].lower().endswith(".exe"):
+                        download_url = asset["browser_download_url"]
+                        break
+            except Exception:
+                pass
+
+            exe_path = sys.executable
+            exe_dir = os.path.dirname(exe_path)
+            new_exe = os.path.join(exe_dir, "_app_update.exe")
+            bat_path = os.path.join(exe_dir, "_updater.bat")
+
+            urllib.request.urlretrieve(download_url, new_exe)
+
+            bat = (
+                "@echo off\n"
+                "timeout /t 2 /nobreak >nul\n"
+                f'move /y "{new_exe}" "{exe_path}"\n'
+                f'start "" "{exe_path}"\n'
+                'del "%~f0"\n'
+            )
+            with open(bat_path, "w") as f:
+                f.write(bat)
+
+            _update_status["state"] = "restarting"
+            subprocess.Popen(
+                ["cmd", "/c", bat_path],
+                creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
+                close_fds=True
+            )
+            time.sleep(1)
+            os._exit(0)
+
+        except Exception as e:
+            _update_status["state"] = "error"
+            _update_status["error"] = str(e)
+
+    threading.Thread(target=run, daemon=True).start()
+    return success({"status": "downloading"})
+
+
+@server.route("/update-status", methods=["GET"])
+def getUpdateStatus():
+    return success(_update_status)
 
 
 @server.route("/version", methods=["GET"])
