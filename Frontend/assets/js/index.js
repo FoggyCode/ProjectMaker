@@ -17,7 +17,22 @@ window.onload = async function init() {
     projectUi();
     keys.listeners();
     checkForUpdate();
+    prefetchLanguages();
 };
+
+async function prefetchLanguages() {
+    const uncached = Projects.projects.filter(p => !localStorage.getItem("lang_" + p.path));
+    if (uncached.length === 0) return;
+    let updated = false;
+    await Promise.all(uncached.map(async p => {
+        const info = await fetchInfo(p.path);
+        if (info?.languages?.length > 0) {
+            localStorage.setItem("lang_" + p.path, JSON.stringify(info.languages.slice(0, 2)));
+            updated = true;
+        }
+    }));
+    if (updated) projectUi();
+}
 
 // ── Persist ────────────────────────────────────────────────────────────────────
 
