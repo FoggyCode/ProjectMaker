@@ -1594,3 +1594,363 @@ footer{
         font-size: 0.7rem;
     }
 }
+
+/* =============================================
+   UPDATE BANNER
+   ============================================= */
+
+#update-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2000;
+    background: linear-gradient(90deg, #1a4a8a 0%, #1d3461 100%);
+    border-bottom: 1px solid #4a9eff;
+    padding: 0.6rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #e0e0e0;
+}
+
+#update-banner-text {
+    flex: 1;
+}
+
+#update-banner-btn {
+    background: #4a9eff;
+    color: #fff;
+    border: none;
+    padding: 0.35rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#update-banner-btn:hover {
+    background: #3d8de6;
+}
+
+#update-banner-dismiss {
+    background: transparent;
+    border: none;
+    color: #909090;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: color 0.2s;
+}
+
+#update-banner-dismiss:hover {
+    color: #e0e0e0;
+}
+
+body.has-banner .dashboard {
+    padding-top: 4rem;
+}
+
+/* =============================================
+   FOLDER CARDS
+   ============================================= */
+
+.folder-card {
+    background: #252525;
+    border: 1px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.folder-card:hover {
+    border-color: #4a9eff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.2);
+}
+
+.folder-card.drag-over {
+    border-color: #4bcc7f;
+    background: rgba(75, 204, 127, 0.08);
+    box-shadow: 0 4px 16px rgba(75, 204, 127, 0.25);
+    transform: scale(1.02);
+}
+
+.folder-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #2a2a2a;
+    color: var(--folder-color, #4a9eff);
+}
+
+.folder-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.folder-card-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.folder-card-count {
+    font-size: 0.82rem;
+    color: #909090;
+}
+
+.folder-card-delete {
+    background: transparent;
+    border: none;
+    color: #555;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.folder-card-delete:hover {
+    color: #dc3545;
+}
+
+/* Folder color picker */
+.folder-color-picker {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.folder-color-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.folder-color-btn:hover {
+    transform: scale(1.15);
+}
+
+.folder-color-btn.active {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
+}
+
+/* Folder breadcrumb */
+#folder-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+}
+
+#folder-breadcrumb-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e0e0e0;
+}
+
+/* =============================================
+   MULTI-SELECTION
+   ============================================= */
+
+#selection-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.6rem 1rem;
+    background: #252525;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+#selection-count {
+    font-size: 0.9rem;
+    color: #909090;
+    margin-right: auto;
+}
+
+.project-card.selection-active {
+    cursor: default;
+}
+
+.project-card.selection-active:hover {
+    transform: none;
+}
+
+.project-card.selected {
+    border-color: #4a9eff;
+    background: rgba(74, 158, 255, 0.07);
+    box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.3);
+}
+
+.project-select-check {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    border: 2px solid #555;
+    background: #1e1e1e;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    z-index: 2;
+}
+
+.project-card.selection-active .project-select-check {
+    display: flex;
+}
+
+.project-card.selected .project-select-check {
+    border-color: #4a9eff;
+    background: #4a9eff;
+}
+
+.project-card.selected .project-select-check::after {
+    content: "";
+    width: 5px;
+    height: 9px;
+    border: 2px solid white;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translate(-1px, -1px);
+}
+
+/* Dragging */
+.project-card[draggable="true"] {
+    cursor: grab;
+}
+
+.project-card.dragging {
+    opacity: 0.5;
+}
+
+/* =============================================
+   PROJECT VIEW MODAL — unified footer
+   ============================================= */
+
+.view-project-actions {
+    justify-content: space-between !important;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.action-group-left,
+.action-group-right {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-secondary {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    border: 1px solid #3a3a3a;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #333333;
+    border-color: #4a4a4a;
+}
+
+/* Fix: remove yellow/inconsistent remove-btn color */
+.view-project-remove {
+    background: #2a2a2a !important;
+    color: #e0e0e0 !important;
+    border: 1px solid #3a3a3a !important;
+}
+
+.view-project-remove:hover {
+    background: #3a3a3a !important;
+    border-color: #555 !important;
+}
+
+/* Consistent button padding across all modals */
+.modal-footer .btn-primary,
+.modal-footer .btn-danger,
+.modal-footer .btn-secondary {
+    padding: 0.55rem 1.1rem;
+    font-size: 0.9rem;
+}
+
+/* zip/share/open wait spinners */
+#zip-wait,
+#share-wait {
+    display: none;
+}
+
+/* Selection mode active state on button */
+#selection-mode-btn.active {
+    background: #1a3a5a;
+    border: 1px solid #4a9eff;
+    color: #4a9eff;
+}
+
+/* Move to folder list */
+#move-folder-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.move-folder-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #252525;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.move-folder-item:hover {
+    border-color: #4a9eff;
+    background: rgba(74,158,255,0.07);
+}
+
+.move-folder-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}

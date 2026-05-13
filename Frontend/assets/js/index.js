@@ -1,1010 +1,939 @@
 import * as Projects from "./projects.js";
 import * as extras from "./extras.js";
 import * as settings from "./settings.js";
-import * as windows from "./windows.js"
-import * as keys from "./keys.js"
+import * as windows from "./windows.js";
+import * as keys from "./keys.js";
 
 window.onload = async function init() {
-    //let loaded = JSON.parse(localStorage.getItem("projects"))
     let loaded = await fetchProjects();
     settings.init();
     Projects.setProjects(loaded == null ? [] : loaded);
-    console.log(Projects.projects);
+    await loadFolders();
     overlay("");
     buttons();
     options();
     inputs();
     sortSelect();
     projectUi();
-
-    keys.listeners()
+    keys.listeners();
+    checkForUpdate();
 };
+
+// ── Persist ────────────────────────────────────────────────────────────────────
+
 function saveProjects() {
-    //localStorage.setItem("projects" , JSON.stringify(Projects.projects))
     updateProjects();
 }
+
+// ── Folders state ──────────────────────────────────────────────────────────────
+
+let folders = [];
+let currentFolderId = null;
+let selectedFolderColor = "#4a9eff";
+
+async function loadFolders() {
+    const data = await fetch("/folders").then(r => r.json());
+    if (data.success) folders = data.content;
+    else folders = [];
+}
+
+function saveFolders() {
+    fetch("/folders", {
+        method: "POST",
+        body: JSON.stringify(folders),
+        headers: { "Content-Type": "application/json" }
+    });
+}
+
+function createFolder(name, color) {
+    const id = "f_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+    folders.push({ id, name, color });
+    saveFolders();
+    projectUi();
+}
+
+function deleteFolder(id) {
+    folders = folders.filter(f => f.id !== id);
+    Projects.projects.forEach(p => { if (p.folder_id === id) p.folder_id = null; });
+    saveFolders();
+    saveProjects();
+    if (currentFolderId === id) {
+        currentFolderId = null;
+        hideBreadcrumb();
+    }
+    projectUi();
+}
+
+function moveProjectsToFolder(projectNames, folderId) {
+    Projects.projects.forEach(p => {
+        if (projectNames.includes(p.name)) p.folder_id = folderId;
+    });
+    saveProjects();
+    projectUi();
+}
+
+function showBreadcrumb(folder) {
+    const bc = document.getElementById("folder-breadcrumb");
+    document.getElementById("folder-breadcrumb-name").textContent = folder.name;
+    bc.style.display = "flex";
+}
+
+function hideBreadcrumb() {
+    document.getElementById("folder-breadcrumb").style.display = "none";
+}
+
+// ── Selection state ────────────────────────────────────────────────────────────
+
+let selectionMode = false;
+let selectedProjects = new Set();
+
+function enterSelectionMode() {
+    selectionMode = true;
+    selectedProjects.clear();
+    document.getElementById("selection-toolbar").style.display = "flex";
+    document.getElementById("selection-mode-btn").classList.add("active");
+    updateSelectionCount();
+    projectUi();
+}
+
+function exitSelectionMode() {
+    selectionMode = false;
+    selectedProjects.clear();
+    document.getElementById("selection-toolbar").style.display = "none";
+    document.getElementById("selection-mode-btn").classList.remove("active");
+    projectUi();
+}
+
+function toggleProjectSelection(name) {
+    if (selectedProjects.has(name)) selectedProjects.delete(name);
+    else selectedProjects.add(name);
+    updateSelectionCount();
+    projectUi();
+}
+
+function updateSelectionCount() {
+    document.getElementById("selection-count").textContent = selectedProjects.size + " ausgewählt";
+}
+
+// ── Update check ───────────────────────────────────────────────────────────────
+
+async function checkForUpdate() {
+    try {
+        const data = await fetch("/check-update").then(r => r.json());
+        if (!data.success || !data.content.update) return;
+        const info = data.content;
+        const dismissed = localStorage.getItem("dismissed_update");
+        if (dismissed === info.version) return;
+        const banner = document.getElementById("update-banner");
+        document.getElementById("update-banner-text").textContent =
+            `🚀 Version ${info.version} ist verfügbar!`;
+        banner.style.display = "flex";
+        document.body.classList.add("has-banner");
+        document.getElementById("update-banner-btn").onclick = () => {
+            fetch("/browser?url=" + encodeURIComponent(info.url));
+        };
+        document.getElementById("update-banner-dismiss").onclick = () => {
+            banner.style.display = "none";
+            document.body.classList.remove("has-banner");
+            localStorage.setItem("dismissed_update", info.version);
+        };
+    } catch (_) {}
+}
+
+// ── Inputs ────────────────────────────────────────────────────────────────────
+
 function inputs() {
     let searchInput = document.querySelector(".search-box");
     searchInput.addEventListener("input", function (event) {
         searchInput = event.target;
-        if (searchInput.value == "") {
-            filterSearch = null;
-        }
-        else {
-            filterSearch = searchInput.value;
-        }
+        filterSearch = searchInput.value === "" ? null : searchInput.value;
         projectUi();
     });
-
-    windows.setView("projects")
-    // Template
+    windows.setView("projects");
     templateSelect();
 }
-window.overlay = function overlay(panelActive) {
-    let allPanel = ["project-view-modal", "project-share-modal" ,"settings-modal", "scan-projects-modal", "project-create-modal", "project-add-modal", "template-add-modal", "project-edit-modal" , "template-view-modal" , "project-delete-modal"];
-    let notNone = false;
 
+// ── Overlay ───────────────────────────────────────────────────────────────────
+
+window.overlay = function overlay(panelActive) {
+    const allPanel = [
+        "project-view-modal", "project-share-modal", "settings-modal",
+        "scan-projects-modal", "project-create-modal", "project-add-modal",
+        "template-add-modal", "project-edit-modal", "template-view-modal",
+        "project-delete-modal", "folder-create-modal", "move-to-folder-modal"
+    ];
+    let notNone = false;
     allPanel.forEach(panel => {
         let npanel = document.querySelector("." + panel);
-        npanel.style.display = panel == panelActive ? "flex" : "none";
-        notNone = panel == panelActive ? true : notNone;
+        npanel.style.display = panel === panelActive ? "flex" : "none";
+        if (panel === panelActive) notNone = true;
     });
+    document.querySelector(".dashboard").style.pointerEvents = notNone ? "none" : "all";
+    document.querySelector(".modal-overlay").style.display = notNone ? "flex" : "none";
+};
 
-    let dashboard = document.querySelector(".dashboard");
-    if (panelActive == false){
-        dashboard.style.pointerEvents = "all";
-    }else{
-       dashboard.style.pointerEvents = "none";
-    }
+// ── Buttons ───────────────────────────────────────────────────────────────────
 
-    console.log(document.querySelector(".dashboard").style.overflow )
-   
-
-    let overlayPanel = document.querySelector(".modal-overlay");
-    overlayPanel.style.display = notNone ? "flex" : "none";
-}
 function buttons() {
-    // Create Project
-    let createButton = document.querySelector("#create-project-btn");
-    createButton === null || createButton === void 0 ? void 0 : createButton.addEventListener("click", function () {
-        overlay("project-create-modal");
-    });
-    let addButton = document.querySelector("#add-project-btn");
-    addButton === null || addButton === void 0 ? void 0 : addButton.addEventListener("click", function () {
-        overlay("project-add-modal");
-    });
-    let addTemplateButton = document.querySelector("#add-template-btn");
-    addTemplateButton === null || addTemplateButton === void 0 ? void 0 : addTemplateButton.addEventListener("click", function () {
-        overlay("template-add-modal");
-    });
-    // Close Button
-    document.querySelectorAll(".close-btn").forEach(element => {
-        element.addEventListener("click", function () { overlay(""); });
-    });
-    document.querySelectorAll(".close-btn-sec").forEach(element => {
-        element.addEventListener("click", function () { overlay(""); });
-    });
-    // Confirm create 
-    document.querySelector(".create-project-confirm").addEventListener("click", function () {
-        createProject();
-    });
-    // Confirm add
-    document.querySelector(".add-project-confirm").addEventListener("click", function () {
-        addProject();
-    });
+    document.querySelector("#create-project-btn")?.addEventListener("click", () => overlay("project-create-modal"));
+    document.querySelector("#add-project-btn")?.addEventListener("click", () => overlay("project-add-modal"));
+    document.querySelector("#add-template-btn")?.addEventListener("click", () => overlay("template-add-modal"));
 
-    // Scan Projects
-    document.querySelector("#scan-projects-btn").addEventListener("click", function () {
-        overlay("scan-projects-modal");
-        
-    });
+    document.querySelectorAll(".close-btn").forEach(el => el.addEventListener("click", () => overlay("")));
+    document.querySelectorAll(".close-btn-sec").forEach(el => el.addEventListener("click", () => overlay("")));
 
-
-
-    // Confirm add
-    document.querySelector(".add-template-confirm").addEventListener("click", function () {
-        addTemplate();
-    });
-
-    // Show Templates
-    document.querySelector("#show-templates-btn").addEventListener("click", function () {
-        windows.setView("templates")
-        templateUI()
-    });
-
-    // Show Templates
-    document.querySelector("#show-projects-btn").addEventListener("click", function () {
-        windows.setView("projects")
-    });
-
-    // Scan Start
-    document.querySelector(".scan-start-btn").addEventListener("click", function () {
-        startScan()
-    });
-
-    // Confirm settings
-    document.querySelector(".settings-confirm").addEventListener("click", function () {
-        saveSettings();
-    });
+    document.querySelector(".create-project-confirm").addEventListener("click", () => createProject());
+    document.querySelector(".add-project-confirm").addEventListener("click", () => addProject());
+    document.querySelector("#scan-projects-btn").addEventListener("click", () => overlay("scan-projects-modal"));
+    document.querySelector(".add-template-confirm").addEventListener("click", () => addTemplate());
+    document.querySelector("#show-templates-btn").addEventListener("click", () => { windows.setView("templates"); templateUI(); });
+    document.querySelector("#show-projects-btn").addEventListener("click", () => windows.setView("projects"));
+    document.querySelector(".scan-start-btn").addEventListener("click", () => startScan());
+    document.querySelector(".settings-confirm").addEventListener("click", () => saveSettings());
     document.querySelector("#open-application-folder").addEventListener("click", () => fetch("/explorer?name=application"));
     document.querySelector("#open-templates-folder").addEventListener("click", () => fetch("/explorer?name=templates"));
-    // Settings
-    document.querySelector("#settings-btn").addEventListener("click", function () {
-        overlay("settings-modal");
-        settingsView();
-    });
-    // Locate button
-    document.querySelector("#locate-btn").addEventListener("click", function () {
-        fetch("/locate").then(resp => resp.json()).then(data => {
-            if (data.success) {
-                let pathInput = document.querySelector("#project-add-path");
-                pathInput.value = data.content;
-            }
+    document.querySelector("#settings-btn").addEventListener("click", () => { overlay("settings-modal"); settingsView(); });
+
+    document.querySelector("#locate-btn").addEventListener("click", () => {
+        fetch("/locate").then(r => r.json()).then(d => {
+            if (d.success) document.querySelector("#project-add-path").value = d.content;
         });
-    });    
-    
-    // Scan Locate button
-    document.querySelector("#locate-scan-btn").addEventListener("click", function () {
-        fetch("/locate").then(resp => resp.json()).then(data => {
-            if (data.success) {
-                let pathInput = document.querySelector("#scan-projects-path");
-                pathInput.value = data.content;
-                scanPrepare()
-            }
+    });
+    document.querySelector("#locate-scan-btn").addEventListener("click", () => {
+        fetch("/locate").then(r => r.json()).then(d => {
+            if (d.success) { document.querySelector("#scan-projects-path").value = d.content; scanPrepare(); }
+        });
+    });
+    document.querySelector("#locate-btn-project-folder").addEventListener("click", () => {
+        fetch("/locate").then(r => r.json()).then(d => {
+            if (d.success) document.querySelector("#projects-folder").value = d.content;
         });
     });
 
-    // Locate button settings panel
-    document.querySelector("#locate-btn-project-folder").addEventListener("click", function () {
-        fetch("/locate").then(resp => resp.json()).then(data => {
-            if (data.success) {
-                let pathInput = document.querySelector("#projects-folder");
-                pathInput.value = data.content;
-            }
-        });
-    });
-    // Filter
-    document.querySelectorAll(".filter-btn").forEach((element) => {
-        element.addEventListener("click", function () {
-            // Alle normal
-            document.querySelectorAll(".filter-btn").forEach((el) => {
-                el.classList.remove("active");
-            });
-            element.classList.add("active");
-            let category = parseInt(element.dataset.value);
-            if (category == -1) {
-                filterIndex = null;
-            }
-            else {
-                filterIndex = category;
-            }
+    document.querySelectorAll(".filter-btn").forEach(el => {
+        el.addEventListener("click", () => {
+            document.querySelectorAll(".filter-btn").forEach(e => e.classList.remove("active"));
+            el.classList.add("active");
+            const cat = parseInt(el.dataset.value);
+            filterIndex = cat === -1 ? null : cat;
             projectUi();
         });
     });
+
+    // Selection mode
+    document.getElementById("selection-mode-btn").addEventListener("click", () => {
+        selectionMode ? exitSelectionMode() : enterSelectionMode();
+    });
+    document.getElementById("select-all-btn").addEventListener("click", () => {
+        getVisibleProjects().forEach(p => selectedProjects.add(p.name));
+        updateSelectionCount();
+        projectUi();
+    });
+    document.getElementById("select-none-btn").addEventListener("click", () => {
+        selectedProjects.clear();
+        updateSelectionCount();
+        projectUi();
+    });
+    document.getElementById("delete-selected-btn").addEventListener("click", () => deleteSelected());
+    document.getElementById("move-to-folder-btn").addEventListener("click", () => openMoveToFolderModal());
+
+    // Folders
+    document.getElementById("new-folder-btn").addEventListener("click", () => {
+        selectedFolderColor = "#4a9eff";
+        document.querySelectorAll(".folder-color-btn").forEach(b => b.classList.remove("active"));
+        document.querySelector('.folder-color-btn[data-color="#4a9eff"]').classList.add("active");
+        document.getElementById("folder-create-name").value = "";
+        overlay("folder-create-modal");
+    });
+    document.querySelectorAll(".folder-color-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".folder-color-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            selectedFolderColor = btn.dataset.color;
+        });
+    });
+    document.querySelector(".folder-create-confirm").addEventListener("click", () => {
+        const name = document.getElementById("folder-create-name").value.trim();
+        if (name.length < 1) { alert("Bitte einen Ordnernamen eingeben!"); return; }
+        createFolder(name, selectedFolderColor);
+        overlay("");
+    });
+
+    // Folder back button
+    document.getElementById("folder-back-btn").addEventListener("click", () => {
+        currentFolderId = null;
+        hideBreadcrumb();
+        projectUi();
+    });
+
+    // Move to folder — "no folder" button
+    document.querySelector(".move-to-none-btn").addEventListener("click", () => {
+        moveProjectsToFolder([...selectedProjects], null);
+        overlay("");
+        exitSelectionMode();
+    });
 }
+
+function getVisibleProjects() {
+    let list = Projects.projects;
+    if (currentFolderId !== null) {
+        list = list.filter(p => p.folder_id === currentFolderId);
+    } else {
+        list = list.filter(p => !p.folder_id);
+    }
+    if (filterIndex !== null) {
+        if (filterIndex === 3) list = Projects.filterProjects({ favourite: true }, list);
+        else list = Projects.filterProjects({ ide: filterIndex }, list);
+    }
+    if (filterSearch !== null) list = Projects.filterProjects({ name: filterSearch }, list);
+    return list;
+}
+
+function deleteSelected() {
+    if (selectedProjects.size === 0) return;
+    const names = [...selectedProjects];
+    if (!confirm(`${names.length} Projekt(e) wirklich löschen (Ordner werden gelöscht)?`)) return;
+    const toDelete = Projects.projects.filter(p => names.includes(p.name));
+    toDelete.forEach(p => {
+        fetch("/projects/delete?path=" + p.path);
+        Projects.removeProject(p.id);
+    });
+    saveProjects();
+    exitSelectionMode();
+    setTimeout(() => window.location.reload(), 300);
+}
+
+function openMoveToFolderModal() {
+    if (selectedProjects.size === 0) return;
+    const list = document.getElementById("move-folder-list");
+    list.replaceChildren();
+    folders.forEach(f => {
+        const item = document.createElement("div");
+        item.className = "move-folder-item";
+        item.innerHTML = `<div class="move-folder-dot" style="background:${f.color}"></div><span>${f.name}</span>`;
+        item.onclick = () => {
+            moveProjectsToFolder([...selectedProjects], f.id);
+            overlay("");
+            exitSelectionMode();
+        };
+        list.appendChild(item);
+    });
+    overlay("move-to-folder-modal");
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+
 let filterIndex = null;
 let filterSearch = null;
+
+// ── Edit Project ──────────────────────────────────────────────────────────────
+
 function editProject(project) {
-    document.querySelector(".project-edit-modal .close-btn").onclick = async function () {
+    document.querySelector(".project-edit-modal .close-btn").onclick = async () => {
         overlay("project-view-modal");
         await projectView(project);
     };
     document.querySelector("#project-edit-name").value = project.name;
-    document.querySelectorAll(".ide-option.edit").forEach(element => {
-        element.classList.remove("selected");
-        if (element.dataset.value == project.ide.toString()) {
-            element.classList.add("selected");
-        }
+    document.querySelectorAll(".ide-option.edit").forEach(el => {
+        el.classList.remove("selected");
+        if (el.dataset.value === project.ide.toString()) el.classList.add("selected");
     });
     document.querySelector("#project-edit-icon").value = project.icon;
-    // Confirm project
-    document.querySelector(".project-edit-modal .create-project-confirm").onclick = function () {
-        saveProject(project);
-    };
+    document.querySelector(".project-edit-modal .create-project-confirm").onclick = () => saveProject(project);
 }
+
 function saveProject(project) {
-    let projectName = document.querySelector("#project-edit-name").value;
-    let projectIde = parseInt(document.querySelector(".ide-option.edit.selected").dataset.value);
+    const projectName = document.querySelector("#project-edit-name").value;
+    const projectIde = parseInt(document.querySelector(".ide-option.edit.selected").dataset.value);
     let projectIcon = document.querySelector("#project-edit-icon").value;
-    // Checken ob standart icon benutzt werden
-    icons.forEach(element => {
-        if (element.link.toString() == projectIcon.toString() && projectIcon != "") {
-            projectIcon = "";
-        }
-    });
-    // Auf standart icon setzten wenn
-    if (projectIcon == "") {
-        // Default ide icon
-        icons.forEach(element => {
-            if (element.title == Projects.ideString(projectIde).toLocaleLowerCase()) {
-                projectIcon = element.link;
-            }
-        });
+    icons.forEach(el => { if (el.link.toString() === projectIcon.toString() && projectIcon !== "") projectIcon = ""; });
+    if (projectIcon === "") {
+        icons.forEach(el => { if (el.title === Projects.ideString(projectIde).toLocaleLowerCase()) projectIcon = el.link; });
     }
-    project.update({ "icon": projectIcon, "name": projectName, "ide": projectIde });
+    project.update({ icon: projectIcon, name: projectName, ide: projectIde });
     saveProjects();
     projectUi();
     overlay("project-view-modal");
     projectView(project);
 }
 
-let scan = null
+// ── Scan ──────────────────────────────────────────────────────────────────────
 
+let scan = null;
 
-async function scanPrepare(){
-
-  
-    let scanPath = document.querySelector("#scan-projects-path").value; 
-
-
-    document.querySelector(".scan-prepare-count").textContent = "Verzeichnes scannen..."
-    document.querySelector(".scan-start-btn").style.display = "none"
-
-    let info = await fetch("/scan/prepare?path=" + scanPath).then(resp => resp.json())
-
-    if (info.success){
-        scan = info.content
-        document.querySelector(".scan-prepare-count").textContent ="Datein/Ordner zu scannen: " + scan.entries
-        document.querySelector(".scan-start-btn").style.display = "flex"
-
-    }else{
-        alert(info.content)
+async function scanPrepare() {
+    const scanPath = document.querySelector("#scan-projects-path").value;
+    document.querySelector(".scan-prepare-count").textContent = "Verzeichnis scannen...";
+    document.querySelector(".scan-start-btn").style.display = "none";
+    const info = await fetch("/scan/prepare?path=" + scanPath).then(r => r.json());
+    if (info.success) {
+        scan = info.content;
+        document.querySelector(".scan-prepare-count").textContent = "Dateien/Ordner zu scannen: " + scan.entries;
+        document.querySelector(".scan-start-btn").style.display = "flex";
+    } else {
+        alert(info.content);
     }
-
 }
 
-function startScan(){
+function startScan() {
+    if (!scan) { alert("No scan prepared!"); return; }
+    fetch("/scan/start").then(r => r.json());
+    const scanPreparePanel = document.querySelector("#scan-prepare");
+    const scanOngoingPanel = document.querySelector("#scan-ongoing");
+    document.querySelector(".scan-add-btn").style.display = "none";
+    document.querySelector(".stop-scan-btn").style.display = "flex";
+    document.querySelector("#scan-progress").style.width = "0%";
+    scanPreparePanel.style.display = "none";
+    scanOngoingPanel.style.display = "flex";
 
-    if (scan == null) {alert("No scan prepared!")}
-
-    // Start
-    fetch("/scan/start").then(resp => resp.json())
-    let scanPreparePanel = document.querySelector("#scan-prepare")
-    let scanOngoingPanel = document.querySelector("#scan-ongoing")
-
-    // Default ui 
-    document.querySelector(".scan-add-btn").style.display = "none"
-    document.querySelector(".stop-scan-btn").style.display = "flex"
-    document.querySelector("#scan-progress").style.width = 0 + "%"
-    scanPreparePanel.style.display = "none"
-    scanOngoingPanel.style.display = "flex"
-    // Default ui 
-
-
-    let scanInterval = setInterval(() => {
-        fetch("/scan/info").then(resp => resp.json()).then(data => {
-            console.log(data)
-            if (data.success){
-                scan = data.content
-                if (scan.finished == true){
-                    // Finished
-                    clearInterval(scanInterval)
-                    document.querySelector(".scan-ongoing-status").textContent = "Scan fertig"
-                    document.querySelector(".scan-ongoing-found").textContent = "Projekte gefunden: " + scan.found.length 
-                    document.querySelector("#scan-progress").style.width = 100 + "%"
-                    document.querySelector(".scan-add-btn").style.display = "flex"
-
-                    document.querySelector(".scan-add-btn").onclick  = () => {
-                        let added = 0
+    const scanInterval = setInterval(() => {
+        fetch("/scan/info").then(r => r.json()).then(data => {
+            if (data.success) {
+                scan = data.content;
+                if (scan.finished) {
+                    clearInterval(scanInterval);
+                    document.querySelector(".scan-ongoing-status").textContent = "Scan fertig";
+                    document.querySelector(".scan-ongoing-found").textContent = "Projekte gefunden: " + scan.found.length;
+                    document.querySelector("#scan-progress").style.width = "100%";
+                    document.querySelector(".scan-add-btn").style.display = "flex";
+                    document.querySelector(".scan-add-btn").onclick = () => {
+                        let added = 0;
                         scan.found.forEach(project => {
                             let ide = Projects.ide.VSCODE;
-                            if (project.type == "VSSTUDIO") {
-                                ide = Projects.ide.VSSTUDIO;
-                            }
-                            if (project.type == "INTELLIJ") {
-                                ide = Projects.ide.INTELLIJ;
-                            }
-                            console.log(project)
-                            let result = Projects.addProject(project.name, ide, project.path);
-
-                            console.log(result)
-                            if (result) {added++}
+                            if (project.type === "VSSTUDIO") ide = Projects.ide.VSSTUDIO;
+                            if (project.type === "INTELLIJ") ide = Projects.ide.INTELLIJ;
+                            if (Projects.addProject(project.name, ide, project.path)) added++;
                         });
                         saveProjects();
-                        alert(added + "/" + scan.found.length + " Projekte wurden hinzugefügt!") 
-
-                        scanPreparePanel.style.display = "block"
-                        scanOngoingPanel.style.display = "none"
-                        overlay("")
-                        projectUi()
-                    }
-                    document.querySelector(".scan-prepare-count").textContent = "Verzeichnes auswählen..."
-                    document.querySelector(".stop-scan-btn").style.display = "none"
-                    
-                }else{
-                    document.querySelector(".scan-ongoing-status").textContent = Math.round(scan.progress) + "% | " + Math.round(scan.eta) + "s verbleibend"
-                    document.querySelector(".scan-ongoing-found").textContent = "Projekte gefunden: " + scan.found.length 
-                    document.querySelector("#scan-progress").style.width = scan.progress + "%"
+                        alert(added + "/" + scan.found.length + " Projekte wurden hinzugefügt!");
+                        scanPreparePanel.style.display = "block";
+                        scanOngoingPanel.style.display = "none";
+                        overlay("");
+                        projectUi();
+                    };
+                    document.querySelector(".scan-prepare-count").textContent = "Verzeichnis auswählen...";
+                    document.querySelector(".stop-scan-btn").style.display = "none";
+                } else {
+                    document.querySelector(".scan-ongoing-status").textContent =
+                        Math.round(scan.progress) + "% | " + Math.round(scan.eta) + "s verbleibend";
+                    document.querySelector(".scan-ongoing-found").textContent = "Projekte gefunden: " + scan.found.length;
+                    document.querySelector("#scan-progress").style.width = scan.progress + "%";
                 }
-
-               
-            }else{
-                alert(data.content)
-            }
- 
-        })
-    }, 2000)
-}
-
-function addTemplate() {
-    let templateName = document.querySelector("#template-add-name").value;
-    let templateDescription = document.querySelector("#template-add-des").value;
-    let templateCmd = document.querySelector("#template-add-cmd").value;
-    let templateIcon = document.querySelector("#template-icon").value;
-    if (templateName.length > 3 && templateDescription.length > 5) {
-        let template = {
-            name: templateName,
-            des: templateDescription,
-            icon: templateIcon,
-            cmd: templateCmd
-        };
-        fetch("/templates/create", {
-            method: "POST",
-            body: JSON.stringify(template),
-            headers: { "Content-Type": "application/json" }
-        }).then(resp => resp.json()).then(data => {
-            if (data.success) {
-                setTimeout(() => {
-                    window.location.reload();
-                }, 200);
-            }
-            else {
-                alert("Template konnte nicht erstellt werden! " + data.content);
+            } else {
+                alert(data.content);
             }
         });
-    }
-    else {
+    }, 2000);
+}
+
+// ── Templates ─────────────────────────────────────────────────────────────────
+
+function addTemplate() {
+    const name = document.querySelector("#template-add-name").value;
+    const description = document.querySelector("#template-add-des").value;
+    const cmd = document.querySelector("#template-add-cmd").value;
+    const icon = document.querySelector("#template-icon").value;
+    if (name.length > 3 && description.length > 5) {
+        fetch("/templates/create", {
+            method: "POST",
+            body: JSON.stringify({ name, des: description, icon, cmd }),
+            headers: { "Content-Type": "application/json" }
+        }).then(r => r.json()).then(data => {
+            if (data.success) setTimeout(() => window.location.reload(), 200);
+            else alert("Template konnte nicht erstellt werden! " + data.content);
+        });
+    } else {
         alert("Name/Beschreibung ist zu kurz!");
     }
 }
 
-function templateUI(){
-    let prefab = document.querySelector(".template-card.prefab")
-    document.querySelector(".templates-grid").replaceChildren()
-    templates.forEach(template => {
-        let clone = prefab.cloneNode(true);
-
-        clone.addEventListener("click", async function () {
-            templateView(template);
-            overlay("template-view-modal");
-        });
-
-        if (clone) {
-            console.log(template)
-            clone.querySelector(".template-info h3").textContent = template.title;
-            clone.querySelector(".template-info .ide-badge").textContent = "Template"
-            clone.querySelector(".template-info .ide-badge").classList.add("template")
-
-            let iconUrl = "https://cdn-icons-png.flaticon.com/128/15236/15236867.png"
-            if (template.info.icon != null) {
-                iconUrl = template.info.icon;
-            }
-            clone.querySelector(".template-icon").src = iconUrl;
-            let iconElement = clone.querySelector(".template-icon img");
-            iconElement.src = iconUrl;
-            clone.classList.remove("prefab");
-            document.querySelector(".templates-grid").appendChild(clone);
-        }      
-    });
-
-}
-
-function options() {
-    // Ide options
-    let ideOptions = document.querySelectorAll(".ide-option.create");
-    ideOptions.forEach(element => {
-        element.addEventListener("click", function () {
-            ideOptions.forEach(element => {
-                element.classList.remove("selected");
-            });
-            element.classList.add("selected");
-        });
-    });
-    let ideEditOptions = document.querySelectorAll(".ide-option.edit");
-    ideEditOptions.forEach(element => {
-        element.addEventListener("click", function () {
-            ideEditOptions.forEach(element => {
-                element.classList.remove("selected");
-            });
-            element.classList.add("selected");
-        });
-    });
-}
-async function createProject() {
-    let projectInput = document.querySelector("#project-name");
-    let projectName = projectInput === null || projectInput === void 0 ? void 0 : projectInput.value;
-    if (projectName != undefined) {
-        if (projectName.length < 3) {
-            alert("Name muss mehr als 3 Zeichen haben!");
-            return;
-        }
-        let ideSelect = document.querySelector(".ide-option.selected");
-        let ideNum = parseInt(ideSelect.dataset.value) + 1;
-        let ide = ideNum;
-        let defaultPath = settings.get("projectsFolder");
-        let path = defaultPath + "/" + projectName;
-        let category = settings.get("categories") == true ? templateSelected : null;
-        await fetch("/projects/new?path=" + path + "&template=" + templateSelected.toString() + "&category=" + category).then(resp => resp.json()).then(data => {
-            console.log(data);
-            if (data.success) {
-                let info = data.content.templateInfo;
-                let icon = null;
-                // Default ide icon
-                icons.forEach(element => {
-                    if (element.title == Projects.ideString(ide)) {
-                        icon = element.link;
-                    }
-                });
-                // Icon aus json
-                if (info != null) {
-                    if (info.icon != null) {
-                        icon = info.icon;
-                    }
-                }
-                Projects.addProject(projectName, ide, path, icon);
-                saveProjects();
-                console.log(Projects.projects);
-                setTimeout(() => {
-                    window.location.reload();
-                }, 300);
-            }
-        });
-    }
-}
-async function openProject(project) {
-    await fetch("/projects/open?path=" + project.path + "&ide=" + Projects.ideString(project.ide)).then(resp => resp.json()).then(data => {
-        if (data.success) {
-        }
-    });
-}
-function deleteProject(project) {
-    fetch("/projects/delete?path=" + project.path).then(resp => resp.json()).then(data => {
-        if (data.success) {
-            projectUi();
-        }
-        else {
-            alert("Fehler beim löschen: " + data.content);
-        }
-    });
-}
-function settingsView() {
-    let panel = document.querySelector(".settings-modal");
-    panel.querySelector("#projects-folder").value = settings.get("projectsFolder");
-    panel.querySelector("#use-categories").checked = settings.get("categories");
-
-
-}
-function saveSettings() {
-    let panel = document.querySelector(".settings-modal");
-    let projectsFolder = panel.querySelector("#projects-folder").value;
-    settings.set("projectsFolder", projectsFolder);
-    let useCategories = panel.querySelector("#use-categories").checked;
-    settings.set("categories", useCategories);
-    settings.save();
-    overlay("");
-}
-async function addProject() {
-    let pathInput = document.querySelector("#project-add-path");
-    let cleanPath = pathInput.value.replace(/[/\\]$/, ""); // Entfernt / oder \ am Ende
-    let name = cleanPath.split(/[/\\]/).pop();
-    let info = await fetch("/projects/add/evaluate?path=" + pathInput.value).then(resp => resp.json());
-    if (info.success) {
-        info = info.content;
-    }
-    else {
-        info = [];
-    }
-    let ide = Projects.ide.VSCODE;
-    if (info["ide"] == "sln") {
-        ide = Projects.ide.VSSTUDIO;
-    }
-    if (info["ide"] == "idea") {
-        ide = Projects.ide.INTELLIJ;
-    }
-    let worked = Projects.addProject(name, ide, pathInput.value);
-    saveProjects();
-    if (worked) {
-        setTimeout(() => {
-            window.location.reload();
-        }, 200);
-    }
-}
-function updateProjects() {
-    return fetch("/projects", {
-        method: "POST",
-        body: JSON.stringify(Projects.projects),
-        headers: { "Content-Type": "application/json" }
-    }).then(resp => resp.json()).then(data => {
-        if (data.success) {
-            return data.content;
-        }
-        else {
-            //alert("Error updating projects")
-        }
-    });
-}
-async function fetchProjects() {
-    return await fetch("/projects").then(resp => resp.json()).then(data => {
-        if (data.success) {
-            return data.content;
-        }
-        else {
-            alert("Error fetching projects");
-        }
-    });
-}
-async function fetchInfo(path) {
-    return await fetch("/projects/info?path=" + path).then(resp => resp.json()).then(data => {
-        if (data.success) {
-            return data.content;
-        }
-        else {
-            alert("Error fetching projects");
-            return null;
-        }
-    });
-}
-let templates = [];
+let _templates = [];
 let templateSelected = "none";
+
 async function templateSelect() {
-    await fetch("/templates").then(resp => resp.json()).then(data => {
-        if (data.success) {
-            templates = data.content;
-        }
-        else {
-            alert("Templates konnten nicht geladen werden!: " + data.content);
+    await fetch("/templates").then(r => r.json()).then(data => {
+        if (data.success) _templates = data.content;
+        else alert("Templates konnten nicht geladen werden!: " + data.content);
+    });
+    const sel = document.querySelector(".project-template");
+    const prefab = sel.querySelector(".option");
+    _templates.forEach(el => {
+        const clone = prefab.cloneNode(true);
+        clone.querySelector("h4").textContent = el.title;
+        if (el.info.icon) clone.querySelector("img").src = el.info.icon;
+        sel.querySelector(".dropdown").appendChild(clone);
+    });
+    sel.addEventListener("click", ev => {
+        if (ev.target.classList.contains("active-option")) {
+            sel.querySelector(".dropdown").style.display = "flex";
+            sel.style.userSelect = "none";
         }
     });
-    let templateSelect = document.querySelector(".project-template");
-    let prefab = templateSelect.querySelector(".option");
-    templates.forEach(element => {
-        let clone = prefab.cloneNode(true);
-        clone.querySelector("h4").textContent = element.title;
-        templateSelect.querySelector(".dropdown").appendChild(clone);
-        if (element.info.icon != null) {
-            clone.querySelector("img").src = element.info.icon;
-        }
-    });
-    templateSelect.addEventListener("click", function (event) {
-        let target = event.target;
-        if (target.classList.contains("active-option")) {
-            templateSelect.querySelector(".dropdown").style.display = "flex";
-            templateSelect.style.userSelect = "none";
-        }
-    });
-    templateSelect.querySelectorAll(".option").forEach(option => {
-        let text = option.querySelector("h4").textContent;
-        option.addEventListener("click", function () {
+    sel.querySelectorAll(".option").forEach(opt => {
+        const text = opt.querySelector("h4").textContent;
+        opt.addEventListener("click", () => {
             templateSelected = text;
-            templateSelect.querySelector(".dropdown").style.display = "none";
-            templateSelect.style.userSelect = "";
-            templateSelect.querySelector(".active-option h4").textContent = templateSelected;
-            templateSelect.querySelector(".active-option img").src = option.querySelector("img").src;
+            sel.querySelector(".dropdown").style.display = "none";
+            sel.style.userSelect = "";
+            sel.querySelector(".active-option h4").textContent = templateSelected;
+            sel.querySelector(".active-option img").src = opt.querySelector("img").src;
         });
     });
 }
-let sortAfter = "Datum";
-async function sortSelect() {
-    let sortSelect = document.querySelector(".sort-after");
-    sortSelect.addEventListener("click", function (event) {
-        let target = event.target;
-        if (target.classList.contains("active-option")) {
-            sortSelect.querySelector(".dropdown").style.display = "flex";
-            sortSelect.style.userSelect = "none";
-        }
-    });
-    sortSelect.querySelector(".active-option h4").textContent = "Sortieren nach: " + sortAfter;
-    sortSelect.querySelectorAll(".option").forEach(option => {
-        let text = option.querySelector("h4").textContent;
-        option.addEventListener("click", function () {
-            sortAfter = text;
-            sortSelect.querySelector(".dropdown").style.display = "none";
-            sortSelect.style.userSelect = "";
-            sortSelect.querySelector(".active-option h4").textContent = "Sortieren nach: " + sortAfter;
-            projectUi();
-        });
+
+function templateUI() {
+    const prefab = document.querySelector(".template-card.prefab");
+    document.querySelector(".templates-grid").replaceChildren();
+    _templates.forEach(template => {
+        const clone = prefab.cloneNode(true);
+        clone.addEventListener("click", () => { templateView(template); overlay("template-view-modal"); });
+        clone.querySelector(".template-info h3").textContent = template.title;
+        clone.querySelector(".template-info .ide-badge").textContent = "Template";
+        clone.querySelector(".template-info .ide-badge").classList.add("template");
+        const iconUrl = template.info.icon ?? "https://cdn-icons-png.flaticon.com/128/15236/15236867.png";
+        clone.querySelector(".template-icon img").src = iconUrl;
+        clone.classList.remove("prefab");
+        document.querySelector(".templates-grid").appendChild(clone);
     });
 }
 
 async function templateView(template) {
-    let panel = document.querySelector(".template-view-modal")
-    panel.querySelector(".view-template-name").textContent = template.title
-    panel.querySelector(".view-template-detail").textContent = template.info.description
-    panel.querySelector(".template-icon").src = template.info.icon
-    panel.querySelector("#template-command").value = template.info.command == undefined ? "" : template.info.command 
-    panel.querySelector("#template-image").value= template.info.icon
-
-
-    panel.querySelector("#template-command").onchange =  (ev) => {
-        template.info.command = ev.target.value
-        updateTemplate(template)
-    }
-    panel.querySelector("#template-image").onchange = (ev) => {
-        template.info.icon = ev.target.value
-        updateTemplate(template)
-    }
-    panel.querySelector(".view-template-open").onclick = () => {
-        fetch("/explorer?path=" + template.path)
-    }
-    
-
+    const panel = document.querySelector(".template-view-modal");
+    panel.querySelector(".view-template-name").textContent = template.title;
+    panel.querySelector(".view-template-detail").textContent = template.info.description;
+    panel.querySelector(".template-icon").src = template.info.icon;
+    panel.querySelector("#template-command").value = template.info.command ?? "";
+    panel.querySelector("#template-image").value = template.info.icon ?? "";
+    panel.querySelector("#template-command").onchange = ev => { template.info.command = ev.target.value; updateTemplate(template); };
+    panel.querySelector("#template-image").onchange = ev => { template.info.icon = ev.target.value; updateTemplate(template); };
+    panel.querySelector(".view-template-open").onclick = () => fetch("/explorer?path=" + template.path);
     panel.querySelector(".view-template-delete").onclick = () => {
-        templates = templates.filter(t => {
-            if (t.title != template.title){
-                return t
-            }
-        })
-
-        fetch("/templates/delete?path=" + template.path).then(resp => resp.json()).then(data => {
-            console.log(data)
-            if (data.success){
-                templateUI()
-                overlay("")
-            }else{
-                alert(data.content)
-            }
-        })
-
-        
-    }
+        _templates = _templates.filter(t => t.title !== template.title);
+        fetch("/templates/delete?path=" + template.path).then(r => r.json()).then(data => {
+            if (data.success) { templateUI(); overlay(""); }
+            else alert(data.content);
+        });
+    };
 }
 
-
-
-function updateTemplate(template){
+function updateTemplate(template) {
     fetch("/templates/edit?path=" + template.path, {
         method: "POST",
         body: JSON.stringify(template.info),
-        headers: {"Content-Type" : "application/json"}
-    }).then(resp => resp.json()).then(data => {
-        console.log(data)
-    })
+        headers: { "Content-Type": "application/json" }
+    }).then(r => r.json());
 }
 
+// ── Sort ──────────────────────────────────────────────────────────────────────
 
+let sortAfter = "Datum";
 
-// Sort after sort-after select
+async function sortSelect() {
+    const sel = document.querySelector(".sort-after");
+    sel.addEventListener("click", ev => {
+        if (ev.target.classList.contains("active-option")) {
+            sel.querySelector(".dropdown").style.display = "flex";
+            sel.style.userSelect = "none";
+        }
+    });
+    sel.querySelector(".active-option h4").textContent = "Sortieren nach: " + sortAfter;
+    sel.querySelectorAll(".option").forEach(opt => {
+        const text = opt.querySelector("h4").textContent;
+        opt.addEventListener("click", () => {
+            sortAfter = text;
+            sel.querySelector(".dropdown").style.display = "none";
+            sel.style.userSelect = "";
+            sel.querySelector(".active-option h4").textContent = "Sortieren nach: " + sortAfter;
+            projectUi();
+        });
+    });
+}
+
+// ── Project View ──────────────────────────────────────────────────────────────
+
 async function projectView(project) {
     document.querySelector(".view-project-name").textContent = project.name;
     document.querySelector(".view-project-ide").textContent = Projects.ideString(project.ide);
-    let panel = document.querySelector(".project-view-modal");
-
+    const panel = document.querySelector(".project-view-modal");
     currentPath = project.path.replace(/\\/g, "/");
 
-    // Loading Icon
-    let loadingIcon = panel.querySelector(".files-loading");
-    loadingIcon.style.display = "flex"
-    // Liste replacen
-    let fileList = document.querySelector(".file-container")
-    fileList.replaceChildren(loadingIcon); 
+    // Files loading
+    const loadingIcon = panel.querySelector(".files-loading");
+    loadingIcon.style.display = "flex";
+    const fileList = document.querySelector(".file-container");
+    fileList.replaceChildren(loadingIcon);
 
-    fetch("/projects/files?path=" + project.path).then(resp => resp.json()).then((data) => {
-        if (data.success){
-            let files = data.content
-            renderFiles(files , currentPath , project)
-        }else{
-            alert("Files couldnt be loaded!")
-        }
-    })
+    fetch("/projects/files?path=" + project.path).then(r => r.json()).then(data => {
+        if (data.success) renderFiles(data.content, currentPath, project);
+        else alert("Files couldn't be loaded!");
+    });
 
-    
-
-    document.querySelector(".view-project-remove").onclick = function () {
+    // Entfernen
+    document.querySelector(".view-project-remove").onclick = () => {
         Projects.removeProject(project.id);
-        // Deleted
         saveProjects();
-        setTimeout(() => {
-            window.location.reload();
-        }, 100);
+        setTimeout(() => window.location.reload(), 100);
     };
 
-    document.querySelector(".view-project-zip").onclick = async function(){
-        let zipIcon = document.querySelector("#zip-icon")
-        let zipWait = document.querySelector("#zip-wait")
+    // Zip
+    document.querySelector(".view-project-zip").onclick = async () => {
+        const zipIcon = document.querySelector("#zip-icon");
+        const zipWait = document.querySelector("#zip-wait");
+        zipIcon.style.display = "none";
+        zipWait.style.display = "inline-block";
+        fetch("/projects/zip?path=" + project.path).then(r => r.json()).then(() => {
+            zipIcon.style.display = "inline-block";
+            zipWait.style.display = "none";
+        });
+    };
 
-        zipIcon.style.display = "none"
-        zipWait.style.setProperty("display", "flex", "important");
-        console.log(zipWait.style.display)
-        fetch("/projects/zip?path=" + project.path).then(resp => resp.json()).then(data => {
-            console.log(data)
-            zipIcon.style.display = "flex"
-            zipWait.style.display = "none"
-        })
-    }
-
-    document.querySelector(".view-project-share").onclick = async function(){
-        let shareIcon = document.querySelector("#share-icon")
-        let shareWait = document.querySelector("#share-wait")
-
-        shareIcon.style.display = "none"
-        shareWait.style.setProperty("display", "flex", "important");
-
-        fetch("/projects/share?path=" + project.path).then(resp => resp.json()).then(data => {
-            console.log(data)
-            shareIcon.style.display = "flex"
-            shareWait.style.display = "none"
-            if (data.success){
-                let url = data.content
-
-                overlay("project-share-modal")
-
-                document.querySelector("#project-share-link").value = url
-                document.querySelector(".open-project-link").onclick = function() {
-                    fetch("/browser?url=" + url)
-                }
+    // Teilen
+    document.querySelector(".view-project-share").onclick = async () => {
+        const shareIcon = document.querySelector("#share-icon");
+        const shareWait = document.querySelector("#share-wait");
+        shareIcon.style.display = "none";
+        shareWait.style.display = "inline-block";
+        fetch("/projects/share?path=" + project.path).then(r => r.json()).then(data => {
+            shareIcon.style.display = "inline-block";
+            shareWait.style.display = "none";
+            if (data.success) {
+                overlay("project-share-modal");
+                document.querySelector("#project-share-link").value = data.content;
+                document.querySelector(".open-project-link").onclick = () => fetch("/browser?url=" + data.content);
             }
-        })
-    }
+        });
+    };
 
-    document.querySelector(".view-project-delete").onclick = function () {
+    // Löschen
+    document.querySelector(".view-project-delete").onclick = () => {
         overlay("project-delete-modal");
-        document.querySelector("#project-delete-info").textContent = project.name 
-        document.querySelector(".project-delete-confirm").onclick = function(){
-            if (document.querySelector("#project-delete-name").value == project.name){
+        document.querySelector("#project-delete-info").textContent = project.name;
+        document.querySelector(".project-delete-confirm").onclick = () => {
+            if (document.querySelector("#project-delete-name").value === project.name) {
                 deleteProject(project);
                 saveProjects();
-                setTimeout(() => {
-                    window.location.reload();
-                }, 200);
-            }else{
-                alert("Namen stimmen nicht überein!")
+                setTimeout(() => window.location.reload(), 200);
+            } else {
+                alert("Namen stimmen nicht überein!");
             }
-        }
+        };
     };
+
     panel.querySelector(".last-edited-detail").textContent = "Zuletzt bearbeitet: " + new Date(project.last_edited).toLocaleString();
     panel.querySelector(".created-at-detail").textContent = "Erstellt: " + new Date(project.created_at).toLocaleString();
     panel.querySelector(".ide-badge").textContent = Projects.ideString(project.ide);
-    panel.querySelector(".ide-badge").classList = "ide-badge view-project-ide " + Projects.ideString(project.ide).toLowerCase();
+    panel.querySelector(".ide-badge").className = "ide-badge view-project-ide " + Projects.ideString(project.ide).toLowerCase();
 
-    let iconUrl = icons.filter(v => {
-        if (v.title == Projects.ideString(project.ide).toLowerCase()) {
-            return v;
-        }
-    })[0].link;
-    if (project.icon != null) {
-        iconUrl = project.icon;
-    }
+    let iconUrl = icons.find(v => v.title === Projects.ideString(project.ide).toLowerCase())?.link ?? "";
+    if (project.icon) iconUrl = project.icon;
     panel.querySelector(".current-icon img").src = iconUrl;
     panel.querySelector(".path-value").textContent = project.path;
+    panel.querySelector(".path-card").onclick = () => fetch("/explorer?path=" + project.path);
+    panel.querySelector(".btn-project-edit").onclick = () => { overlay("project-edit-modal"); editProject(project); };
+    document.querySelector(".view-project-open").onclick = () => openProject(project);
 
-    panel.querySelector(".path-card").onclick = function () {
-        fetch("/explorer?path=" + project.path);
-    };
-    // Edit project
-    panel.querySelector(".btn-project-edit").onclick = function () {
-        overlay("project-edit-modal");
-        editProject(project);
-    };
-    // Open Project
-    let openBtn = document.querySelector(".view-project-open");
-    if (openBtn) {
-        openBtn.onclick = () => {
-            openProject(project);
-        };
-    }
-
-    //---------------------------------------------------------------
-    //---------------------------------------------------------------
-    // Extras after fetch 
-    let info = {
-        lines: 0,
-        files: 0,
-        activeFor: 0,
-        languages: [{ title: "Java", percent: 15 }],
-        approximate: false
-    };
-
-    // Language list leeren
-    let langList = document.querySelector(".language-bars");
+    // Stats
+    const langList = document.querySelector(".language-bars");
     langList.replaceChildren();
+    panel.querySelector(".active-time").textContent = "–";
+    panel.querySelector(".file-count").textContent = "–";
+    panel.querySelector(".code-lines").textContent = "–";
 
-    // Texte reseten
-    panel.querySelector(".active-time").textContent = "";
-    panel.querySelector(".file-count").textContent = "";
-    panel.querySelector(".code-lines").textContent = "";
-
-    // Info fetchen
-    let fetched = await fetchInfo(project.path);
-    info = fetched == null ? info : fetched;
-
+    const fetched = await fetchInfo(project.path);
+    const info = fetched ?? { lines: 0, files: 0, activeFor: 0, languages: [], approximate: false };
 
     extras.animateTextNumber(panel.querySelector(".active-time"), info.activeFor, 1, true);
     extras.animateTextNumber(panel.querySelector(".file-count"), info.files, 1, true);
     extras.animateTextNumber(panel.querySelector(".code-lines"), info.lines, 1, true);
+    document.querySelector(".view-project-name").textContent = project.name + (info.approximate ? " (ca.)" : "");
 
-    document.querySelector(".view-project-name").textContent = project.name + (info.approximate ? " - Ungefähr" : "");
-
-    // Languages
-
-    let prefab = document.querySelector(".language-item.prefab");
-
-    let i = 0
-    info.languages.forEach(language => {
-        i++
-        // Language animation
+    const prefab = document.querySelector(".language-item.prefab");
+    info.languages.forEach((language, i) => {
         setTimeout(() => {
-            let clone = prefab.cloneNode(true);
+            const clone = prefab.cloneNode(true);
             clone.querySelector(".language-percent").textContent = language.percent + "%";
             clone.querySelector(".language-name").textContent = language.title;
-            let progressFill = clone.querySelector(".progress-fill");
-            if (progressFill) {
-                progressFill.style.width = `0%`;
+            const fill = clone.querySelector(".progress-fill");
+            if (fill) {
+                fill.style.width = "0%";
                 setTimeout(() => {
-                    progressFill.style.width = `${language.percent}%`;
-                    progressFill.style.backgroundColor = extras.getLanguageColor(language.title);
-                }, 100)
+                    fill.style.width = language.percent + "%";
+                    fill.style.backgroundColor = extras.getLanguageColor(language.title);
+                }, 100);
             }
             clone.classList.remove("prefab");
             langList.appendChild(clone);
-        }, 100 * i)
-        // Language animation
+        }, 100 * (i + 1));
     });
-
-    
-
 }
 
-let currentPath
+let currentPath;
 
-async function renderFiles(files , basePath , project){
+async function renderFiles(files, basePath, project) {
+    const filePrefab = document.querySelector(".file-entry.prefab");
+    const fileList = document.querySelector(".file-container");
+    const loadingIcon = fileList.querySelector(".files-loading");
+    fileList.replaceChildren(loadingIcon);
+    loadingIcon.style.display = "none";
 
-  
-    let filePrefab = document.querySelector(".file-entry.prefab")
-    let fileList = document.querySelector(".file-container")
-   
-    let loadingIcon = fileList.querySelector(".files-loading");
-
-
-    fileList.replaceChildren(loadingIcon); 
-    loadingIcon.style.display = "none"
-
-
-
-    // Back
-
-    if (currentPath != basePath){
-        let clone = filePrefab.cloneNode(true)
-        clone.classList.remove("prefab")
-        clone.querySelector(".file-name").textContent = "Back"
-        let location = "?"
-
-        location = currentPath.replace(basePath , "")
-
-        clone.querySelector(".file-size").textContent = location
+    if (currentPath !== basePath) {
+        const clone = filePrefab.cloneNode(true);
+        clone.classList.remove("prefab");
+        clone.querySelector(".file-name").textContent = "Back";
+        clone.querySelector(".file-size").textContent = currentPath.replace(basePath, "");
         clone.onclick = () => {
-            let splitted = currentPath.split("/")
-            currentPath = splitted.slice(0 , splitted.length - 1).join("/")
-            renderFiles(files , basePath , project)
-        }
-        fileList.appendChild(clone)
+            const parts = currentPath.split("/");
+            currentPath = parts.slice(0, parts.length - 1).join("/");
+            renderFiles(files, basePath, project);
+        };
+        fileList.appendChild(clone);
     }
-    // Back
 
-    files.filter(v => v.root == currentPath).slice(0 , 100).forEach(file => {
-        let clone = filePrefab.cloneNode(true)
-        
-        clone.classList.remove("prefab")
-        clone.querySelector(".file-name").textContent = file.name
-        if (file.type == "file"){
-            clone.path = file.path
-            clone.querySelector(".file-size").textContent = extras.formatBytes(file.size) + " Byte"
-            clone.querySelector("#file-icon").style.display = "flex"
-
-            if (file.code != null){
-                clone.querySelector("#file-icon").style.color = extras.getLanguageColor(file.code)
-                console.log(extras.getLanguageColor(file.code))
-            }
-
-            clone.onclick = () => {
-                fetch("/projects/open?path=" + clone.path + "&ide="+Projects.ideString(project.ide)).then(resp => resp.json()).then(data => {
-
-                })
-            }
-        }else if (file.type == "folder"){
-            clone.path = file.mypath
-            clone.querySelector(".file-size").textContent = file.size + " Datein"
-            clone.querySelector("#folder-icon").style.display = "flex"
-            clone.onclick = () => {
-                currentPath = clone.path.replace(/\\/g, "/");
-                renderFiles(files , basePath , project)
-            }
+    files.filter(v => v.root === currentPath).slice(0, 100).forEach(file => {
+        const clone = filePrefab.cloneNode(true);
+        clone.classList.remove("prefab");
+        clone.querySelector(".file-name").textContent = file.name;
+        if (file.type === "file") {
+            clone.path = file.path;
+            clone.querySelector(".file-size").textContent = extras.formatBytes(file.size);
+            clone.querySelector("#file-icon").style.display = "flex";
+            if (file.code) clone.querySelector("#file-icon").style.color = extras.getLanguageColor(file.code);
+            clone.onclick = () => fetch("/projects/open?path=" + clone.path + "&ide=" + Projects.ideString(project.ide)).then(r => r.json());
+        } else if (file.type === "folder") {
+            clone.path = file.mypath;
+            clone.querySelector(".file-size").textContent = file.size + " Dateien";
+            clone.querySelector("#folder-icon").style.display = "flex";
+            clone.onclick = () => { currentPath = clone.path.replace(/\\/g, "/"); renderFiles(files, basePath, project); };
         }
-
-
-        fileList.appendChild(clone)
+        fileList.appendChild(clone);
     });
-
-
 }
 
+// ── Options (IDE radio) ───────────────────────────────────────────────────────
 
-let icons = [
+function options() {
+    const createOpts = document.querySelectorAll(".ide-option.create");
+    createOpts.forEach(el => el.addEventListener("click", () => {
+        createOpts.forEach(e => e.classList.remove("selected"));
+        el.classList.add("selected");
+    }));
+    const editOpts = document.querySelectorAll(".ide-option.edit");
+    editOpts.forEach(el => el.addEventListener("click", () => {
+        editOpts.forEach(e => e.classList.remove("selected"));
+        el.classList.add("selected");
+    }));
+}
+
+// ── Create / Add / Open / Delete project ──────────────────────────────────────
+
+async function createProject() {
+    const projectInput = document.querySelector("#project-name");
+    const projectName = projectInput?.value;
+    if (!projectName || projectName.length < 3) { alert("Name muss mehr als 3 Zeichen haben!"); return; }
+    const ideNum = parseInt(document.querySelector(".ide-option.create.selected").dataset.value) + 1;
+    const defaultPath = settings.get("projectsFolder");
+    const path = defaultPath + "/" + projectName;
+    const category = settings.get("categories") === true ? templateSelected : null;
+    await fetch("/projects/new?path=" + path + "&template=" + templateSelected + "&category=" + category)
+        .then(r => r.json()).then(data => {
+            if (data.success) {
+                const info = data.content.templateInfo;
+                let icon = null;
+                icons.forEach(el => { if (el.title === Projects.ideString(ideNum)) icon = el.link; });
+                if (info?.icon) icon = info.icon;
+                Projects.addProject(projectName, ideNum, path, icon);
+                saveProjects();
+                setTimeout(() => window.location.reload(), 300);
+            }
+        });
+}
+
+async function openProject(project) {
+    await fetch("/projects/open?path=" + project.path + "&ide=" + Projects.ideString(project.ide)).then(r => r.json());
+}
+
+function deleteProject(project) {
+    fetch("/projects/delete?path=" + project.path).then(r => r.json()).then(data => {
+        if (!data.success) alert("Fehler beim löschen: " + data.content);
+    });
+}
+
+function settingsView() {
+    const panel = document.querySelector(".settings-modal");
+    panel.querySelector("#projects-folder").value = settings.get("projectsFolder");
+    panel.querySelector("#use-categories").checked = settings.get("categories");
+}
+
+function saveSettings() {
+    const panel = document.querySelector(".settings-modal");
+    settings.set("projectsFolder", panel.querySelector("#projects-folder").value);
+    settings.set("categories", panel.querySelector("#use-categories").checked);
+    settings.save();
+    overlay("");
+}
+
+async function addProject() {
+    const pathInput = document.querySelector("#project-add-path");
+    const cleanPath = pathInput.value.replace(/[/\\]$/, "");
+    const name = cleanPath.split(/[/\\]/).pop();
+    let info = await fetch("/projects/add/evaluate?path=" + pathInput.value).then(r => r.json());
+    info = info.success ? info.content : {};
+    let ide = Projects.ide.VSCODE;
+    if (info["ide"] === "sln") ide = Projects.ide.VSSTUDIO;
+    if (info["ide"] === "idea") ide = Projects.ide.INTELLIJ;
+    if (Projects.addProject(name, ide, pathInput.value)) {
+        saveProjects();
+        setTimeout(() => window.location.reload(), 200);
+    }
+}
+
+function updateProjects() {
+    fetch("/projects", {
+        method: "POST",
+        body: JSON.stringify(Projects.projects),
+        headers: { "Content-Type": "application/json" }
+    }).then(r => r.json());
+}
+
+async function fetchProjects() {
+    return fetch("/projects").then(r => r.json()).then(data => {
+        if (data.success) return data.content;
+        alert("Error fetching projects");
+    });
+}
+
+async function fetchInfo(path) {
+    return fetch("/projects/info?path=" + path).then(r => r.json()).then(data => {
+        if (data.success) return data.content;
+        return null;
+    });
+}
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
+
+const icons = [
     { title: "vsstudio", link: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Visual_Studio_Icon_2022.svg/960px-Visual_Studio_Icon_2022.svg.png" },
     { title: "vscode", link: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/3840px-Visual_Studio_Code_1.35_icon.svg.png" },
     { title: "intellij", link: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/IntelliJ_IDEA_Icon.svg/960px-IntelliJ_IDEA_Icon.svg.png" }
 ];
+
+// ── Project UI ────────────────────────────────────────────────────────────────
+
 function projectUi() {
-    let prefab = document.querySelector(".project-card");
+    const prefab = document.querySelector(".project-card.prefab");
+    const folderPrefab = document.querySelector(".folder-card.prefab");
+    const grid = document.querySelector(".projects-grid");
+    grid.replaceChildren();
+
+    // Folders (only shown when not inside a folder)
+    if (currentFolderId === null) {
+        folders.forEach(folder => {
+            const count = Projects.projects.filter(p => p.folder_id === folder.id).length;
+            const clone = folderPrefab.cloneNode(true);
+            clone.classList.remove("prefab");
+            clone.querySelector(".folder-card-name").textContent = folder.name;
+            clone.querySelector(".folder-card-count").textContent = count + " Projekt" + (count !== 1 ? "e" : "");
+            clone.style.setProperty("--folder-color", folder.color);
+            clone.querySelector(".folder-card-icon").style.color = folder.color;
+            clone.querySelector(".folder-card-icon").style.borderColor = folder.color + "40";
+
+            // Delete button
+            clone.querySelector(".folder-card-delete").onclick = ev => {
+                ev.stopPropagation();
+                if (confirm(`Ordner "${folder.name}" löschen? Projekte bleiben erhalten.`)) deleteFolder(folder.id);
+            };
+
+            // Drag & drop target
+            clone.addEventListener("dragover", ev => { ev.preventDefault(); clone.classList.add("drag-over"); });
+            clone.addEventListener("dragleave", () => clone.classList.remove("drag-over"));
+            clone.addEventListener("drop", ev => {
+                ev.preventDefault();
+                clone.classList.remove("drag-over");
+                const name = ev.dataTransfer.getData("text/plain");
+                if (name) moveProjectsToFolder([name], folder.id);
+            });
+
+            clone.onclick = ev => {
+                if (ev.target.closest(".folder-card-delete")) return;
+                currentFolderId = folder.id;
+                showBreadcrumb(folder);
+                projectUi();
+            };
+
+            grid.appendChild(clone);
+        });
+    }
+
+    // Projects
     let filtered = Projects.projects;
-    if (filterIndex != null) {
-        // Favourites
-        if (filterIndex == 3){
-            console.log("Filtersxs")
-            filtered = Projects.filterProjects({ "favourite": true });
-            console.log(filtered)
-        }else{
-            // Ide Filter
-            filtered = Projects.filterProjects({ "ide": filterIndex });
-        }
-        
+
+    if (currentFolderId !== null) {
+        filtered = filtered.filter(p => p.folder_id === currentFolderId);
+    } else {
+        filtered = filtered.filter(p => !p.folder_id);
     }
-    if (filterSearch != null) {
-        filtered = Projects.filterProjects({ "name": filterSearch }, filtered);
+
+    if (filterIndex !== null) {
+        if (filterIndex === 3) filtered = Projects.filterProjects({ favourite: true }, filtered);
+        else filtered = Projects.filterProjects({ ide: filterIndex }, filtered);
     }
-    if (sortAfter === "Datum") {
-        filtered = filtered.sort((a, b) => new Date(b.last_edited).getTime() - new Date(a.last_edited).getTime());
-    }
-    if (sortAfter === "Datum absteigend") {
-        filtered = filtered.sort((a, b) => new Date(a.last_edited).getTime() - new Date(b.last_edited).getTime());
-    }
-    else if (sortAfter === "Name") {
-        filtered = filtered.sort((a, b) => a.name.toLocaleLowerCase().localeCompare(b.name.toLocaleLowerCase()));
-    }
-    else if (sortAfter === "Ide") {
-        filtered = filtered.sort((a, b) => a.ide - b.ide);
-    }
-    document.querySelector(".projects-grid").replaceChildren();
+    if (filterSearch !== null) filtered = Projects.filterProjects({ name: filterSearch }, filtered);
+
+    if (sortAfter === "Datum") filtered = filtered.sort((a, b) => new Date(b.last_edited) - new Date(a.last_edited));
+    if (sortAfter === "Datum absteigend") filtered = filtered.sort((a, b) => new Date(a.last_edited) - new Date(b.last_edited));
+    else if (sortAfter === "Name") filtered = filtered.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    else if (sortAfter === "Ide") filtered = filtered.sort((a, b) => a.ide - b.ide);
+
     filtered.forEach(project => {
+        const clone = prefab.cloneNode(true);
+        clone.classList.remove("prefab");
 
+        // Selection state
+        if (selectionMode) {
+            clone.classList.add("selection-active");
+            clone.setAttribute("draggable", "false");
+            if (selectedProjects.has(project.name)) clone.classList.add("selected");
+        } else {
+            clone.setAttribute("draggable", "true");
+        }
 
-        let clone = prefab.cloneNode(true);
-        clone.addEventListener("click", async function (ev) {
-            if (!ev.target.classList.contains("override")){
+        clone.addEventListener("click", ev => {
+            if (ev.target.classList.contains("override")) return;
+            if (selectionMode) {
+                toggleProjectSelection(project.name);
+            } else {
                 projectView(project);
                 overlay("project-view-modal");
             }
         });
-        if (clone) {
 
+        // Drag
+        clone.addEventListener("dragstart", ev => {
+            ev.dataTransfer.setData("text/plain", project.name);
+            clone.classList.add("dragging");
+        });
+        clone.addEventListener("dragend", () => clone.classList.remove("dragging"));
 
-            clone.querySelector(".project-info h3").textContent = project.name;
-            clone.querySelector(".project-info .last-edited").textContent = "Zuletzt bearbeitet: " + extras.relativeTimeFrom(new Date(project.last_edited));
-            clone.querySelector(".project-info .ide-badge").textContent = Projects.ideString(project.ide);
-            clone.querySelector(".project-info .ide-badge").classList.add(Projects.ideString(project.ide).toLowerCase());
-            let iconUrl = icons.filter(v => {
-                if (v.title == Projects.ideString(project.ide).toLowerCase()) {
-                    return v;
-                }
-            })[0].link;
-            if (project.icon != null) {
-                iconUrl = project.icon;
-            }
-            clone.querySelector(".project-icon").src = iconUrl;
-            let iconElement = clone.querySelector(".project-icon img");
-            iconElement.src = iconUrl;
-            clone.classList.remove("prefab");
+        clone.querySelector(".project-info h3").textContent = project.name;
+        clone.querySelector(".project-info .last-edited").textContent = "Zuletzt: " + extras.relativeTimeFrom(new Date(project.last_edited));
+        clone.querySelector(".project-info .ide-badge").textContent = Projects.ideString(project.ide);
+        clone.querySelector(".project-info .ide-badge").classList.add(Projects.ideString(project.ide).toLowerCase());
 
+        let iconUrl = icons.find(v => v.title === Projects.ideString(project.ide).toLowerCase())?.link ?? "";
+        if (project.icon) iconUrl = project.icon;
+        clone.querySelector(".project-icon img").src = iconUrl;
 
-            // Favourite
-            clone.querySelector(".project-favourite").onclick = (ev) => {
-                let worked = Projects.favouriteProject(project.name)
-                if (worked){
-                    updateProjects()
-                    projectUi()
-                }else{
-                    alert("Error with favouriting the project!")
-                }
-            }
-
-            if (project.favourite){
-                clone.classList.add("favourite")
-                clone.querySelector(".project-favourite").textContent = "❌" 
-            }
-
-            
-            // Favourite
-
-            document.querySelector(".projects-grid").appendChild(clone);
+        if (project.favourite) {
+            clone.classList.add("favourite");
+            clone.querySelector(".project-favourite").textContent = "❌";
         }
+
+        clone.querySelector(".project-favourite").onclick = ev => {
+            ev.stopPropagation();
+            if (Projects.favouriteProject(project.name)) { updateProjects(); projectUi(); }
+            else alert("Error with favouriting the project!");
+        };
+
+        grid.appendChild(clone);
     });
 }

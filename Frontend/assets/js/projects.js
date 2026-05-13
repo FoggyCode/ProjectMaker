@@ -6,13 +6,14 @@ export var ide;
     ide[ide["VSSTUDIO"] = 3] = "VSSTUDIO";
 })(ide || (ide = {}));
 export class Project {
-    constructor(name, ide, path, icon , favourite) {
+    constructor(name, ide, path, icon, favourite, folder_id) {
         this.name = "";
         this.id = 0;
         this.ide = null;
         this.path = "";
         this.icon = "";
-        this.favourite = favourite
+        this.favourite = favourite;
+        this.folder_id = folder_id ?? null;
         this.last_edited = new Date();
         this.created_at = new Date();
         this.name = name;
@@ -30,13 +31,13 @@ export function ideString(idex) {
 }
 export let projects = [];
 export function setProjects(list) {
-    projects = list.map(p => Object.assign(new Project(p.name, p.ide, p.path, p.icon , p.favourite), p));
+    projects = list.map(p => Object.assign(new Project(p.name, p.ide, p.path, p.icon, p.favourite, p.folder_id), p));
 }
-export function addProject(name, ide, path, icon = null) {
+export function addProject(name, ide, path, icon = null, folder_id = null) {
     if (getProject(name) != null) {
         return false;
     }
-    projects.push(new Project(name, ide - 1, path, icon , false));
+    projects.push(new Project(name, ide - 1, path, icon, false, folder_id));
     return true;
 }
 export function getProject(name) {

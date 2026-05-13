@@ -31,7 +31,7 @@
   },
   {
    "optionDest": "noupx",
-   "value": false
+   "value": true
   },
   {
    "optionDest": "disable_windowed_traceback",
@@ -76,6 +76,10 @@
   {
    "optionDest": "datas",
    "value": "C:/Users/dan.bootz/Desktop/ProjectMaker/Backend/tunnel.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/dan.bootz/Desktop/ProjectMaker/Backend/version.py;."
   }
  ],
  "nonPyinstallerOptions": {
