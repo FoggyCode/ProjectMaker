@@ -292,15 +292,28 @@ function getVisibleProjects() {
 function deleteSelected() {
     if (selectedProjects.size === 0) return;
     const names = [...selectedProjects];
-    if (!confirm(`${names.length} Projekt(e) wirklich löschen (Ordner werden gelöscht)?`)) return;
-    const toDelete = Projects.projects.filter(p => names.includes(p.name));
-    toDelete.forEach(p => {
-        fetch("/projects/delete?path=" + p.path);
-        Projects.removeProject(p.id);
-    });
-    saveProjects();
-    exitSelectionMode();
-    setTimeout(() => window.location.reload(), 300);
+
+    // Bestätigungsmodal öffnen und auf "ALLE LÖSCHEN" warten
+    overlay("project-delete-modal");
+    document.querySelector("#project-delete-info").textContent = "ALLE LÖSCHEN";
+    const input = document.querySelector("#project-delete-name");
+    input.value = "";
+    input.placeholder = "ALLE LÖSCHEN";
+
+    document.querySelector(".project-delete-confirm").onclick = () => {
+        if (input.value !== "ALLE LÖSCHEN") {
+            alert("Bitte genau \"ALLE LÖSCHEN\" eingeben!");
+            return;
+        }
+        const toDelete = Projects.projects.filter(p => names.includes(p.name));
+        toDelete.forEach(p => {
+            fetch("/projects/delete?path=" + p.path);
+            Projects.removeProject(p.id);
+        });
+        saveProjects();
+        exitSelectionMode();
+        setTimeout(() => window.location.reload(), 300);
+    };
 }
 
 function openMoveToFolderModal() {
