@@ -332,7 +332,7 @@ function deleteSelected() {
     document.querySelector("#project-delete-info").textContent = "ALLE LÖSCHEN";
     document.querySelector(".project-delete-confirm").onclick = () => {
         if (document.querySelector("#project-delete-name").value !== "ALLE LÖSCHEN") {
-            alert("Bitte genau „ALLE LÖSCHEN" eingeben!");
+            alert("Bitte genau ALLE LÖSCHEN eingeben!");
             return;
         }
         const toDelete = Projects.projects.filter(p => names.includes(p.name));
